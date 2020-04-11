@@ -13,11 +13,14 @@ let initData =
 
 type context = {
   client: Client.t,
+  loop: Luv.Loop.t,
 }
 
 let start = () => {
+  let loop = Luv.Loop.init() |> Result.get_ok;
+
   let client = Exthost.Client.start(
-  ~namedPipe="/tmp/sock4.sock",
+  ~namedPipe=NamedPipe.create("test"),
   ~initData,
   ~handler=_=>None,
   ~onError=msg => failwith(msg),
@@ -30,15 +33,22 @@ let start = () => {
     Luv.Process.inherit_fd(~fd=1, ~from_parent_fd=1, ()),
     Luv.Process.inherit_fd(~fd=2, ~from_parent_fd=2, ()),
   ];
-  let proc = Luv.Process.spawn(~redirect, "node", ["node", "--version"]);
-  let _ret = Luv.Loop.run();
-  { client: client};
+  let proc = Luv.Process.spawn(~redirect, "node", ["node", "--version"])
+  |> Result.get_ok;
+
+  let done_ = Luv.Loop.run(~loop, ~mode=`DEFAULT, ());
+  prerr_endline ("Done? " ++ (done_ ? "true": "false"));
+  { client: client, loop: loop };
 };
 
 let finish = (expect: RelyInternal.DefaultMatchers.matchers(unit), ctx) => {
-    let { client } = ctx;
+    let { client, loop } = ctx;
+  let done_ = Luv.Loop.run(~loop, ~mode=`NOWAIT, ());
+  prerr_endline ("Done? " ++ (done_ ? "true": "false"));
     Client.close(client);
     expect.equal(1, 1); 
+    let { client, loop } = ctx;
+  let done_ = Luv.Loop.run(~loop, ~mode=`NOWAIT, ());
 };
 
 describe("initial test", ({test, _}) => {
