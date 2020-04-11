@@ -65,4 +65,6 @@ module Client: {
       unit
     ) =>
     result(t, string);
+
+  let close: t => unit;
 };

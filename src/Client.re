@@ -82,3 +82,5 @@ let start =
 
   protocol;
 };
+
+let close = Protocol.close;
