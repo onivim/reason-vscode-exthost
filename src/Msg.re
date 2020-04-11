@@ -2,7 +2,7 @@
 type t =
   | Connected
   | Ready
-  | Commands(Command.msg)
+  | Commands(Commands.msg)
   | DebugService(DebugService.msg)
   | Telemetry(Telemetry.msg)
   | Initialized

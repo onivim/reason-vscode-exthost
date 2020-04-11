@@ -1,5 +1,7 @@
 type reply = unit;
 
+type t = Protocol.t;
+
 let start =
     (
       ~initialConfiguration=Types.Configuration.empty,

@@ -1,5 +1,8 @@
-module Configuration = Types.Configuration;
-module InitData = Types.InitData;
+module Types = Types;
 module Client = Client;
+
+module Commands = Commands;
+module DebugService = DebugService;
+module Telemetry = Telemetry;
+
 module Msg = Msg;
-module Uri = Types.Uri;
