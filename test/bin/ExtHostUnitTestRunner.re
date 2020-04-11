@@ -1,1 +1,2 @@
-prerr_endline ("Hello, world");
+
+ExtHostTest.TestFramework.cli();

@@ -4,4 +4,5 @@
     (package vscode-exthost-test)
     (libraries
         vscode-exthost
+        vscode-exthost-test
             ))
