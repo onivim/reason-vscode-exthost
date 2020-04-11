@@ -48,7 +48,38 @@ module ByteParser = {
     let (method, bytes) = readShortString(bytes);
     let (argsString, bytes) = readLongString(bytes);
     let json = argsString |> Yojson.Safe.from_string;
-    (rpcId, method, json, bytes);
+    (rpcId, method, json);
+  };
+
+  let readMixedArgs = bytes => {
+    let (rpcId, bytes) = readUInt8(bytes);
+    let (method, bytes) = readShortString(bytes);
+
+    let (arrayLength, bytes) = readUInt8(bytes);
+
+    let argString = 1;
+    let argBuffer = 2;
+    //let argUndefined = 3;
+
+    let rec loop = (bytes, idx) =>
+      if (idx >= arrayLength) {
+        [];
+      } else {
+        let (argType, bytes) = readUInt8(bytes);
+        if (argType == argString || argType == argBuffer) {
+          let (str, bytes) = readLongString(bytes);
+          let result =
+            argType == argString
+              ? `String(str) : Yojson.Safe.from_string(str);
+          [result, ...loop(bytes, idx + 1)];
+        } else {
+          [`Null, ...loop(bytes, idx + 1)];
+        };
+      };
+
+    let args = `List(loop(bytes, 0));
+
+    (rpcId, method, args);
   };
 };
 
@@ -168,8 +199,21 @@ module Message = {
               || messageType == requestJsonArgsWithCancellation) {
             let usesCancellationToken =
               messageType == requestJsonArgsWithCancellation;
-            let (rpcId, method, args, bytes) =
-              ByteParser.readJSONArgs(bytes);
+            let (rpcId, method, args) = ByteParser.readJSONArgs(bytes);
+            Ok(
+              RequestJSONArgs({
+                requestId,
+                rpcId,
+                method,
+                args,
+                usesCancellationToken,
+              }),
+            );
+          } else if (messageType == requestMixedArgs
+                     || messageType == requestMixedArgsWithCancellation) {
+            let usesCancellationToken =
+              messageType == requestMixedArgsWithCancellation;
+            let (rpcId, method, args) = ByteParser.readMixedArgs(bytes);
             Ok(
               RequestJSONArgs({
                 requestId,
