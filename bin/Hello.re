@@ -42,9 +42,12 @@ let handler = msg => {
 
 let onError = prerr_endline;
 
+let pipe = NamedPipe.create("hello");
+prerr_endline ("PIPE: " ++ (pipe |> NamedPipe.toString));
+
 let client =
   Client.start(
-    ~namedPipe="/tmp/test-pipe179.sock",
+    ~namedPipe=pipe,
     ~initData,
     ~handler,
     ~onError,
