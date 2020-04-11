@@ -1,0 +1,7 @@
+(executable
+  (package vscode-exthost)
+  (name Hello)
+  (public_name Hello)
+  (libraries vscode-exthost luv)
+  (modules Hello))
+
