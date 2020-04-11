@@ -5,7 +5,7 @@ let start =
       ~initialConfiguration=Types.Configuration.empty,
       ~namedPipe,
       ~initData: Types.InitData.t,
-      ~handler: Message.t => option(reply),
+      ~handler: Msg.t => option(reply),
       ~onError: string => unit,
       (),
     ) => {
@@ -65,8 +65,9 @@ let start =
       | Empty => onError("Unknown / Empty")
       }
     | Incoming.RequestJSONArgs({requestId, rpcId, method, args}) =>
-      let _ = handler(TODOMESSAGE);
-      send(Outgoing.ReplyOKEmpty({requestId: 2}));
+      Handlers.handle(rpcId, method, args)
+      |> Result.iter(msg => handler(msg) |> ignore);
+      send(Outgoing.ReplyOKEmpty({requestId: requestId}));
     | _ => ()
     };
     prerr_endline("Got message: " ++ Protocol.Message.Incoming.show(msg));

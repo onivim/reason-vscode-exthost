@@ -1,21 +1,51 @@
-type t = {
-  id: int,
-  name: string,
-  handler: (string, Yojson.Safe.t) => result(Message.t, string),
+type handler('a) = (string, Yojson.Safe.t) => result('a, string);
+type mapper('a) = 'a => Msg.t;
+
+type t =
+  | MainThreadHandler({
+      handler: handler('a),
+      mapper: mapper('a),
+      id: int,
+      name: string,
+    })
+    : t
+  | ExtHostHandler({
+      id: int,
+      name: string,
+    })
+    : t;
+
+let getName =
+  fun
+  | MainThreadHandler({name, _}) => name
+  | ExtHostHandler({name}) => name;
+
+let getId =
+  fun
+  | MainThreadHandler({id, _}) => id
+  | ExtHostHandler({id, _}) => id;
+
+let setId = (~id) =>
+  fun
+  | MainThreadHandler(main) => MainThreadHandler({...main, id})
+  | ExtHostHandler(ext) => ExtHostHandler({...ext, id});
+
+let defaultHandler = (method, _json) => {
+  Error(Printf.sprintf("No handler registered for %s\n", method));
 };
 
-let main = name => {
-  id: (-1),
-  name,
-  handler: (method, _json) =>
-    Error(Printf.sprintf("No handler registered for %s:%s\n", name, method)),
+let defaultMapper = () => Msg.Unknown;
+
+let main = (~handler=defaultHandler, ~mapper=defaultMapper, name) => {
+  MainThreadHandler({id: (-1), name, handler, mapper});
+};
+
+let main2 = (~handler, ~mapper, name) => {
+  MainThreadHandler({id: (-1), name, handler, mapper});
 };
 
 let ext = name => {
-  id: (-1),
-  name,
-  handler: (method, _json) =>
-    Error(Printf.sprintf("Unexpected request %s:%s\n", name, method)),
+  ExtHostHandler({id: (-1), name});
 };
 
 /**
@@ -55,7 +85,11 @@ let handlers =
     main("MainThreadQuickOpen"),
     main("MainThreadStatusBar"),
     main("MainThreadStorage"),
-    main("MainThreadTelemetry"),
+    main2(
+      ~handler=Telemetry.handle,
+      ~mapper=msg => Msg.Telemetry(msg),
+      "MainThreadTelemetry",
+    ),
     main("MainThreadTerminalService"),
     main("MainThreadWebviews"),
     main("MainThreadUrls"),
@@ -108,14 +142,43 @@ let handlers =
     ext("ExtHostAuthentication"),
     ext("ExtHostTimeline"),
   ]
-  |> List.mapi((idx, v) => {...v, id: idx + 1});
+  |> List.mapi((idx, v) => setId(~id=idx + 1, v));
 
 module Internal = {
   let stringToId =
     handlers
-    |> List.map(({id, name, _}) => (name, id))
+    |> List.map(handler => (getName(handler), getId(handler)))
+    |> List.to_seq
+    |> Hashtbl.of_seq;
+
+  let idToHandler =
+    handlers
+    |> List.map(handler => (getId(handler), handler))
     |> List.to_seq
     |> Hashtbl.of_seq;
 };
 
 let stringToId = Hashtbl.find_opt(Internal.stringToId);
+
+let handle = (rpcId, method, args) => {
+  rpcId
+  |> Hashtbl.find_opt(Internal.idToHandler)
+  |> Option.to_result(
+       ~none="No handler registered fol: " ++ (rpcId |> string_of_int),
+     )
+  |> (
+    opt =>
+      Result.bind(
+        opt,
+        fun
+        | MainThreadHandler({handler, mapper, _}) => {
+            handler(method, args) |> Result.map(mapper);
+          }
+        | _ => {
+            let ret: result(Msg.t, string) =
+              Error("ExtHost handler was incorrectly registered for rpcId");
+            ret;
+          },
+      )
+  );
+};
