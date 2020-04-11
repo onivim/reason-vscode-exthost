@@ -30,11 +30,11 @@ let setId = (~id) =>
   | MainThreadHandler(main) => MainThreadHandler({...main, id})
   | ExtHostHandler(ext) => ExtHostHandler({...ext, id});
 
-let defaultHandler = (method, _json) => {
-  Error(Printf.sprintf("No handler registered for %s\n", method));
+let defaultHandler = (method, json) => {
+  Ok(Msg.Unknown({method, args: json}));
 };
 
-let defaultMapper = () => Msg.Unknown;
+let defaultMapper = v => v;
 
 let mainNotImplemented = name => {
   MainThreadHandler({

@@ -8,4 +8,7 @@ type t =
   | Initialized
   | Disconnected
   | Unhandled
-  | Unknown;
+  | Unknown({
+      method: string,
+      args: Yojson.Safe.t,
+    });

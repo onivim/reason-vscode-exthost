@@ -44,7 +44,7 @@ let onError = prerr_endline;
 
 let client =
   Client.start(
-    ~namedPipe="/tmp/test-pipe177.sock",
+    ~namedPipe="/tmp/test-pipe179.sock",
     ~initData,
     ~handler,
     ~onError,

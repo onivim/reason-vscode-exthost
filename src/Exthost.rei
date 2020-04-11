@@ -43,7 +43,10 @@ module Msg: {
     | Initialized
     | Disconnected
     | Unhandled
-    | Unknown;
+    | Unknown({
+        method: string,
+        args: Yojson.Safe.t,
+      });
 };
 
 module Client: {
