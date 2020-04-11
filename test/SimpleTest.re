@@ -17,13 +17,21 @@ type context = {
 
 let start = () => {
   let client = Exthost.Client.start(
-  ~namedPipe="/tmp/sock2.sock",
+  ~namedPipe="/tmp/sock4.sock",
   ~initData,
   ~handler=_=>None,
   ~onError=msg => failwith(msg),
   (),
   )
   |> Result.get_ok;
+
+  let redirect = [
+    Luv.Process.inherit_fd(~fd=0, ~from_parent_fd=0, ()),
+    Luv.Process.inherit_fd(~fd=1, ~from_parent_fd=1, ()),
+    Luv.Process.inherit_fd(~fd=2, ~from_parent_fd=2, ()),
+  ];
+  let proc = Luv.Process.spawn(~redirect, "node", ["node", "--version"]);
+  let _ret = Luv.Loop.run();
   { client: client};
 };
 
