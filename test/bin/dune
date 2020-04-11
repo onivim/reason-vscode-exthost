@@ -1,0 +1,8 @@
+(executable
+    (name ExtHostUnitTestRunner)
+    (public_name ExtHostUnitTestRunner)
+    (package vscode-exthost-test)
+    (libraries
+        vscode-exthost
+        vscode-exthost-test
+            ))

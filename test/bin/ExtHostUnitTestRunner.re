@@ -1,0 +1,1 @@
+ExtHostTest.TestFramework.cli();
