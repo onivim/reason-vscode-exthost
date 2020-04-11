@@ -2,7 +2,6 @@
 type t =
   | Connected
   | Ready
-  | TODOMESSAGE
   | Commands(Command.msg)
   | DebugService(DebugService.msg)
   | Telemetry(Telemetry.msg)

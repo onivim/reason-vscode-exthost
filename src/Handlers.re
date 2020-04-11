@@ -36,8 +36,13 @@ let defaultHandler = (method, _json) => {
 
 let defaultMapper = () => Msg.Unknown;
 
-let mainNotImplemented = (name) => {
-  MainThreadHandler({id: (-1), name, handler: defaultHandler, mapper: defaultMapper});
+let mainNotImplemented = name => {
+  MainThreadHandler({
+    id: (-1),
+    name,
+    handler: defaultHandler,
+    mapper: defaultMapper,
+  });
 };
 
 let main = (~handler, ~mapper, name) => {
@@ -60,11 +65,19 @@ let handlers =
   [
     mainNotImplemented("MainThreadAuthentication"),
     mainNotImplemented("MainThreadClipboard"),
-    main(~handler=Commands.handle, ~mapper=msg=>Msg.Commands(msg), "MainThreadCommands"),
+    main(
+      ~handler=Commands.handle,
+      ~mapper=msg => Msg.Commands(msg),
+      "MainThreadCommands",
+    ),
     mainNotImplemented("MainThreadComments"),
     mainNotImplemented("MainThreadConfiguration"),
     mainNotImplemented("MainThreadConsole"),
-    main(~handler=DebugService.handle, ~mapper=msg => Msg.DebugService(msg),"MainThreadDebugService"),
+    main(
+      ~handler=DebugService.handle,
+      ~mapper=msg => Msg.DebugService(msg),
+      "MainThreadDebugService",
+    ),
     mainNotImplemented("MainThreadDecorations"),
     mainNotImplemented("MainThreadDiagnostics"),
     mainNotImplemented("MainThreadDialogs"),
