@@ -2,6 +2,8 @@ open Transport;
 
 let bind = (f, opt) => Result.bind(opt, f);
 
+module Log = (val Timber.Log.withNamespace("Transport"));
+
 module ByteParser = {
   exception UInt32ConversionException;
 
@@ -176,7 +178,6 @@ module Message = {
       let {body, _}: Packet.t = packet;
 
       let len = Bytes.length(body);
-      prerr_endline("ofPacket - length: " ++ string_of_int(len));
 
       if (len == 0) {
         Ok(Unknown(body));

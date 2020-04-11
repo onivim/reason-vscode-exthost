@@ -1,3 +1,5 @@
+module Log = (val Timber.Log.withNamespace("Transport"));
+
 module Packet = {
   module Constants = {
     let headerByteLength = 13;
@@ -234,6 +236,8 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
 
     let readBuffer = (buffer: Luv.Buffer.t) => {
       let bytes = Luv.Buffer.to_bytes(buffer);
+      let byteLen = Bytes.length(bytes);
+      Log.tracef(m => m("Got %d bytes from client", byteLen));
 
       let (newParser, packets) =
         try(Packet.Parser.parse(bytes, parser^)) {
@@ -249,6 +253,7 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
 
     maybeClient := Some(clientPipe);
     let handleClosed = () => {
+      Log.info("Connection closed.");
       maybeClient := None;
       dispatch(Disconnected);
       Luv.Handle.close(clientPipe, ignore);
@@ -265,18 +270,17 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
 
   // Listen for an incoming connection...
   let listen = serverPipe => {
-    prerr_endline("Listening...");
+    Log.infof(m => m("Listening on pipe: %s\n", namedPipe));
     Luv.Pipe.bind(serverPipe, namedPipe) |> ignore;
     Luv.Stream.listen(
       serverPipe,
       listenResult => {
-        prerr_endline("Got listen result");
         // Create a pipe for the client
         let clientPipeResult =
           listenResult
           |> (
             r => {
-              prerr_endline("Trying to create client pipe...");
+              Log.info("Trying to create client pipe...");
               Stdlib.Result.bind(r, _ => Luv.Pipe.init());
             }
           )
@@ -291,6 +295,7 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
 
         switch (clientPipeResult) {
         | Ok(pipe) =>
+          Log.info("Established connection.");
           dispatch(Connected);
           read(pipe);
         | Error(err) => handleError("listen", err)
@@ -309,15 +314,15 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
 
 let send = (~packet, {maybeClient}) =>
   switch (maybeClient^) {
-  | None => prerr_endline("No client, yet!")
+  | None => Log.warn("Tried to send without a client.")
   | Some(c) =>
     let bytes = Packet.toBytes(packet);
     let byteLen = bytes |> Bytes.length;
-    prerr_endline(Printf.sprintf("Sending %d bytes...", byteLen));
+    Log.tracef(m => m("Sending %d bytes", byteLen));
     let buffer = Luv.Buffer.from_bytes(bytes);
     // TODO: FIX PENDING BYTES
     Luv.Stream.write(c, [buffer], (err, count) => {
-      prerr_endline(Printf.sprintf("Wrote %d bytes...", count))
+      Log.tracef(m => m("Wrote %d bytes", count))
     });
   };
 

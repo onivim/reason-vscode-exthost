@@ -7,6 +7,9 @@ module Uri = Types.Uri;
 
 Printexc.record_backtrace(true);
 
+Timber.App.enable();
+Timber.App.setLevel(Timber.Level.trace);
+
 let extensions =
   InitData.Extension.[
     {
@@ -44,7 +47,7 @@ let onError = prerr_endline;
 
 let client =
   Client.start(
-    ~namedPipe="/tmp/test-pipe179.sock",
+    ~namedPipe="/tmp/test-pipe185.sock",
     ~initData,
     ~handler,
     ~onError,
