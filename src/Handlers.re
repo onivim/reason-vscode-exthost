@@ -1,21 +1,56 @@
-type t = {
-  id: int,
-  name: string,
-  handler: (string, Yojson.Safe.t) => result(Message.t, string),
+type handler('a) = (string, Yojson.Safe.t) => result('a, string);
+type mapper('a) = 'a => Msg.t;
+
+type t =
+  | MainThreadHandler({
+      handler: handler('a),
+      mapper: mapper('a),
+      id: int,
+      name: string,
+    })
+    : t
+  | ExtHostHandler({
+      id: int,
+      name: string,
+    })
+    : t;
+
+let getName =
+  fun
+  | MainThreadHandler({name, _}) => name
+  | ExtHostHandler({name}) => name;
+
+let getId =
+  fun
+  | MainThreadHandler({id, _}) => id
+  | ExtHostHandler({id, _}) => id;
+
+let setId = (~id) =>
+  fun
+  | MainThreadHandler(main) => MainThreadHandler({...main, id})
+  | ExtHostHandler(ext) => ExtHostHandler({...ext, id});
+
+let defaultHandler = (method, json) => {
+  Ok(Msg.Unknown({method, args: json}));
 };
 
-let main = name => {
-  id: (-1),
-  name,
-  handler: (method, _json) =>
-    Error(Printf.sprintf("No handler registered for %s:%s\n", name, method)),
+let defaultMapper = v => v;
+
+let mainNotImplemented = name => {
+  MainThreadHandler({
+    id: (-1),
+    name,
+    handler: defaultHandler,
+    mapper: defaultMapper,
+  });
+};
+
+let main = (~handler, ~mapper, name) => {
+  MainThreadHandler({id: (-1), name, handler, mapper});
 };
 
 let ext = name => {
-  id: (-1),
-  name,
-  handler: (method, _json) =>
-    Error(Printf.sprintf("Unexpected request %s:%s\n", name, method)),
+  ExtHostHandler({id: (-1), name});
 };
 
 /**
@@ -28,49 +63,61 @@ let ext = name => {
  */
 let handlers =
   [
-    main("MainThreadAuthentication"),
-    main("MainThreadClipboard"),
-    main("MainThreadCommands"),
-    main("MainThreadComments"),
-    main("MainThreadConfiguration"),
-    main("MainThreadConsole"),
-    main("MainThreadDebugService"),
-    main("MainThreadDecorations"),
-    main("MainThreadDiagnostics"),
-    main("MainThreadDialogs"),
-    main("MainThreadDocuments"),
-    main("MainThreadDocumentContentProviders"),
-    main("MainThreadTextEditors"),
-    main("MainThreadEditorInsets"),
-    main("MainThreadErrors"),
-    main("MainThreadTreeViews"),
-    main("MainThreadDownloadService"),
-    main("MainThreadKeytar"),
-    main("MainThreadLanguageFeatures"),
-    main("MainThreadLanguages"),
-    main("MainThreadLog"),
-    main("MainThreadMessageService"),
-    main("MainThreadOutputService"),
-    main("MainThreadProgress"),
-    main("MainThreadQuickOpen"),
-    main("MainThreadStatusBar"),
-    main("MainThreadStorage"),
-    main("MainThreadTelemetry"),
-    main("MainThreadTerminalService"),
-    main("MainThreadWebviews"),
-    main("MainThreadUrls"),
-    main("MainThreadWorkspace"),
-    main("MainThreadFileSystem"),
-    main("MainThreadExtensionService"),
-    main("MainThreadSCM"),
-    main("MainThreadSearch"),
-    main("MainThreadTask"),
-    main("MainThreadWindow"),
-    main("MainThreadLabelService"),
-    main("MainThreadNotebook"),
-    main("MainThreadTheming"),
-    main("MainThreadTunnelService"),
-    main("MainThreadTimeline"),
+    mainNotImplemented("MainThreadAuthentication"),
+    mainNotImplemented("MainThreadClipboard"),
+    main(
+      ~handler=Commands.handle,
+      ~mapper=msg => Msg.Commands(msg),
+      "MainThreadCommands",
+    ),
+    mainNotImplemented("MainThreadComments"),
+    mainNotImplemented("MainThreadConfiguration"),
+    mainNotImplemented("MainThreadConsole"),
+    main(
+      ~handler=DebugService.handle,
+      ~mapper=msg => Msg.DebugService(msg),
+      "MainThreadDebugService",
+    ),
+    mainNotImplemented("MainThreadDecorations"),
+    mainNotImplemented("MainThreadDiagnostics"),
+    mainNotImplemented("MainThreadDialogs"),
+    mainNotImplemented("MainThreadDocuments"),
+    mainNotImplemented("MainThreadDocumentContentProviders"),
+    mainNotImplemented("MainThreadTextEditors"),
+    mainNotImplemented("MainThreadEditorInsets"),
+    mainNotImplemented("MainThreadErrors"),
+    mainNotImplemented("MainThreadTreeViews"),
+    mainNotImplemented("MainThreadDownloadService"),
+    mainNotImplemented("MainThreadKeytar"),
+    mainNotImplemented("MainThreadLanguageFeatures"),
+    mainNotImplemented("MainThreadLanguages"),
+    mainNotImplemented("MainThreadLog"),
+    mainNotImplemented("MainThreadMessageService"),
+    mainNotImplemented("MainThreadOutputService"),
+    mainNotImplemented("MainThreadProgress"),
+    mainNotImplemented("MainThreadQuickOpen"),
+    mainNotImplemented("MainThreadStatusBar"),
+    mainNotImplemented("MainThreadStorage"),
+    main(
+      ~handler=Telemetry.handle,
+      ~mapper=msg => Msg.Telemetry(msg),
+      "MainThreadTelemetry",
+    ),
+    mainNotImplemented("MainThreadTerminalService"),
+    mainNotImplemented("MainThreadWebviews"),
+    mainNotImplemented("MainThreadUrls"),
+    mainNotImplemented("MainThreadWorkspace"),
+    mainNotImplemented("MainThreadFileSystem"),
+    mainNotImplemented("MainThreadExtensionService"),
+    mainNotImplemented("MainThreadSCM"),
+    mainNotImplemented("MainThreadSearch"),
+    mainNotImplemented("MainThreadTask"),
+    mainNotImplemented("MainThreadWindow"),
+    mainNotImplemented("MainThreadLabelService"),
+    mainNotImplemented("MainThreadNotebook"),
+    mainNotImplemented("MainThreadTheming"),
+    mainNotImplemented("MainThreadTunnelService"),
+    mainNotImplemented("MainThreadTimeline"),
     ext("ExtHostCommands"),
     ext("ExtHostConfiguration"),
     ext("ExtHostDiagnostics"),
@@ -108,14 +155,43 @@ let handlers =
     ext("ExtHostAuthentication"),
     ext("ExtHostTimeline"),
   ]
-  |> List.mapi((idx, v) => {...v, id: idx + 1});
+  |> List.mapi((idx, v) => setId(~id=idx + 1, v));
 
 module Internal = {
   let stringToId =
     handlers
-    |> List.map(({id, name, _}) => (name, id))
+    |> List.map(handler => (getName(handler), getId(handler)))
+    |> List.to_seq
+    |> Hashtbl.of_seq;
+
+  let idToHandler =
+    handlers
+    |> List.map(handler => (getId(handler), handler))
     |> List.to_seq
     |> Hashtbl.of_seq;
 };
 
 let stringToId = Hashtbl.find_opt(Internal.stringToId);
+
+let handle = (rpcId, method, args) => {
+  rpcId
+  |> Hashtbl.find_opt(Internal.idToHandler)
+  |> Option.to_result(
+       ~none="No handler registered fol: " ++ (rpcId |> string_of_int),
+     )
+  |> (
+    opt =>
+      Result.bind(
+        opt,
+        fun
+        | MainThreadHandler({handler, mapper, _}) => {
+            handler(method, args) |> Result.map(mapper);
+          }
+        | _ => {
+            let ret: result(Msg.t, string) =
+              Error("ExtHost handler was incorrectly registered for rpcId");
+            ret;
+          },
+      )
+  );
+};

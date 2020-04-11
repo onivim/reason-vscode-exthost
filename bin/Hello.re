@@ -2,6 +2,9 @@ print_endline("Hello, world!");
 
 open Exthost;
 
+module InitData = Types.InitData;
+module Uri = Types.Uri;
+
 Printexc.record_backtrace(true);
 
 let extensions =
@@ -33,7 +36,7 @@ let initData =
   );
 
 let handler = msg => {
-  Message.show(msg) |> prerr_endline;
+  Msg.show(msg) |> prerr_endline;
   None;
 };
 
@@ -41,7 +44,7 @@ let onError = prerr_endline;
 
 let client =
   Client.start(
-    ~namedPipe="/tmp/test-pipe176.sock",
+    ~namedPipe="/tmp/test-pipe179.sock",
     ~initData,
     ~handler,
     ~onError,
