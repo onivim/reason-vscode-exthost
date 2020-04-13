@@ -2,6 +2,6 @@
   (package vscode-exthost)
   (name Hello)
   (public_name Hello)
-  (libraries vscode-exthost luv)
+  (libraries timber vscode-exthost luv)
   (modules Hello))
 

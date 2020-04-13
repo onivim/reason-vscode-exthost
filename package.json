@@ -21,7 +21,8 @@
     "@opam/ppx_deriving": "*",
     "refmterr": "*",
     "ocaml": "^4.7.0",
-    "@opam/luv": "*"
+    "@opam/luv": "*",
+    "@glennsl/timber": "^1.0.0"
   },
   "devDependencies": {
     "ocaml": "^4.8.0",
