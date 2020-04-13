@@ -17,12 +17,13 @@ type context = {
 }
 
 let start = () => {
-  let loop = Luv.Loop.init() |> Result.get_ok;
+  let loop = Luv.Loop.default();
 
+  let namedPipe = NamedPipe.create("test");
   let client = Exthost.Client.start(
-  ~namedPipe=NamedPipe.create("test"),
+  ~namedPipe,
   ~initData,
-  ~handler=_=>None,
+  ~handler={(msg)=>{prerr_endline(Msg.show(msg)); None}},
   ~onError=msg => failwith(msg),
   (),
   )
@@ -33,21 +34,33 @@ let start = () => {
     Luv.Process.inherit_fd(~fd=1, ~from_parent_fd=1, ()),
     Luv.Process.inherit_fd(~fd=2, ~from_parent_fd=2, ()),
   ];
-  let proc = Luv.Process.spawn(~redirect, "node", ["node", "--version"])
-  |> Result.get_ok;
+  prerr_endline ("here!");
+  let environment =[
+  ("PATH", Sys.getenv("PATH")),
+  ("AMD_ENTRYPOINT", "vs/workbench/services/extensions/node/extensionHostProcess"),
+  ("VSCODE_IPC_HOOK_EXTHOST", namedPipe |> NamedPipe.toString)
+  ];
+  let proc = Luv.Process.spawn(~environment,~working_directory="/Users/bryphe/vscode-exthost-v2", ~redirect, "/usr/local/bin/node", ["/usr/local/bin/node", "/Users/bryphe/vscode-exthost-v2/out/bootstrap-fork.js"])
+  let proc = switch (proc) {
+  | Error(err) => 
+  let msg = Luv.Error.strerror(err);
+  prerr_endline(msg); failwith(msg);
+  | Ok(v) => v;
+  }
+  //|> Result.get_ok;
+  prerr_endline ("here2");
 
-  let done_ = Luv.Loop.run(~loop, ~mode=`DEFAULT, ());
-  prerr_endline ("Done? " ++ (done_ ? "true": "false"));
   { client: client, loop: loop };
 };
 
 let finish = (expect: RelyInternal.DefaultMatchers.matchers(unit), ctx) => {
     let { client, loop } = ctx;
-  let done_ = Luv.Loop.run(~loop, ~mode=`NOWAIT, ());
-  prerr_endline ("Done? " ++ (done_ ? "true": "false"));
-    Client.close(client);
-    expect.equal(1, 1); 
-    let { client, loop } = ctx;
+
+
+   while (!Luv.Loop.run(~loop, ~mode=`DEFAULT, ())) {
+  
+   }
+    //Client.close(client);
   let done_ = Luv.Loop.run(~loop, ~mode=`NOWAIT, ());
 };
 
