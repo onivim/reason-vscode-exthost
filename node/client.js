@@ -11,4 +11,5 @@ const client = net.connect(pipe, () => {
 
 client.on('close', () => {
 	log("close");
+	client.destroy();
 });

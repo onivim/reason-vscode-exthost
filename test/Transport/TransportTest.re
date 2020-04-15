@@ -69,7 +69,39 @@ describe("Transport", ({describe, _}) => {
   });
 
   describe("server", ({test, _}) => {
-    test("connect / disconnect", ({expect}) => {
+    test("disconnect from server--side", ({expect}) => {
+      let namedPipe = NamedPipe.create("server-test") |> NamedPipe.toString;
+
+      let messages = ref([]);
+
+      let dispatch = msg => messages := [msg, ...messages^];
+
+      let exits = ref(false);
+      let onExit = (proc, ~exit_status, ~term_signal) => exits := true;
+      let _ = spawnNode(~onExit, ~args=["node/client.js", namedPipe]);
+      let transport = Transport.start(~namedPipe, ~dispatch) |> Result.get_ok;
+
+      wait(() => messages^ |> List.exists(msg => msg == Transport.Connected));
+
+      Transport.close(transport);
+
+      wait(() => {exits^});
+
+      /*wait(() => {
+          messages^ |> List.exists(msg => msg == Transport.Disconnected)
+        });*/
+
+      let collected = ref(false);
+
+      Gc.finalise_last(() => collected := true, transport);
+      wait(() => {
+        Gc.full_major();
+        collected^;
+      });
+
+      expect.equal(exits^, true);
+    });
+    test("disconnect from client-side", ({expect}) => {
       let namedPipe = NamedPipe.create("server-test") |> NamedPipe.toString;
 
       let messages = ref([]);
@@ -83,7 +115,7 @@ describe("Transport", ({describe, _}) => {
           ~onExit,
           ~args=["node/immediate-disconnect-client.js", namedPipe],
         );
-      let _ = Transport.start(~namedPipe, ~dispatch) |> Result.get_ok;
+      let transport = Transport.start(~namedPipe, ~dispatch) |> Result.get_ok;
 
       wait(() => messages^ |> List.exists(msg => msg == Transport.Connected));
 
@@ -93,7 +125,15 @@ describe("Transport", ({describe, _}) => {
         messages^ |> List.exists(msg => msg == Transport.Disconnected)
       });
 
+      let collected = ref(false);
+
+      Gc.finalise_last(() => collected := true, transport);
+      wait(() => {
+        Gc.full_major();
+        collected^;
+      });
+
       expect.equal(exits^, true);
-    })
+    });
   });
 });

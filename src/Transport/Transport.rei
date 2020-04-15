@@ -33,8 +33,7 @@ type msg =
   | Connected
   | Received(Packet.t)
   | Error(string)
-  | Disconnected
-  | Closing;
+  | Disconnected;
 
 type t;
 
