@@ -265,18 +265,15 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
 
   // Listen for an incoming connection...
   let listen = serverPipe => {
-    prerr_endline("!!!!!! Listening...");
     Luv.Pipe.bind(serverPipe, namedPipe) |> ignore;
     Luv.Stream.listen(
       serverPipe,
       listenResult => {
-        prerr_endline("!!!! Got listen result");
         // Create a pipe for the client
         let clientPipeResult =
           listenResult
           |> (
             r => {
-              prerr_endline("!!! Trying to create client pipe...");
               Stdlib.Result.bind(r, _ => Luv.Pipe.init());
             }
           )

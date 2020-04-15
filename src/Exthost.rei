@@ -75,3 +75,6 @@ module Client: {
 
   let close: t => unit;
 };
+
+module Protocol = Protocol;
+module Transport = Transport;
