@@ -211,9 +211,10 @@ module Packet = {
   };
 };
 
+[@deriving show]
 type msg =
   | Connected
-  | Received(Packet.t)
+  | Received([@opaque] Packet.t)
   | Error(string)
   | Disconnected
   | Closing;
@@ -326,4 +327,12 @@ let send = (~packet, {maybeClient}) =>
     });
   };
 
-let close = ({server, _}) => Luv.Handle.close(server, ignore);
+let close = ({server, maybeClient}) => {
+  maybeClient^
+  |> Option.iter(client => {
+       Luv.Stream.shutdown(client, ignore);
+       Luv.Handle.close(client, ignore);
+     });
+  Luv.Stream.shutdown(server, ignore);
+  Luv.Handle.close(server, ignore);
+};

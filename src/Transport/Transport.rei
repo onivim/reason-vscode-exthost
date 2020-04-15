@@ -28,6 +28,7 @@ module Packet: {
   let create: (~bytes: Bytes.t, ~packetType: packetType, ~id: int) => t;
 };
 
+[@deriving show]
 type msg =
   | Connected
   | Received(Packet.t)

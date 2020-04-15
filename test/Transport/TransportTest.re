@@ -1,4 +1,5 @@
 open TestFramework;
+open Exthost;
 
 let spawnNode = (~onExit, ~args) => {
   Luv.Process.spawn(
@@ -31,8 +32,12 @@ let wait = condition => {
   let delta = () => Unix.gettimeofday() -. start;
 
   while (!condition() && delta() < 1.0) {
-    let _: bool = Luv.Loop.run(~mode=`ONCE, ());
+    let _: bool = Luv.Loop.run(~mode=`NOWAIT, ());
     Unix.sleepf(0.1);
+  };
+
+  if (!condition()) {
+    failwith("Condition failed!");
   };
 };
 
@@ -48,15 +53,47 @@ describe("Transport", ({describe, _}) => {
 
     test("node process GC", ({expect}) => {
       let collected = ref(false);
-      let onExit = (proc, ~exit_status, ~term_signal) => ();
-      let proc = spawnNode(~onExit, ~args=["--version"]);
 
-      Gc.finalise_last(() => collected := true, proc);
-
-      wait(() => {
+      let checkCollected = () => {
         Gc.full_major();
         collected^ == true;
-      });
+      };
+
+      let exits = ref(false);
+      let onExit = (proc, ~exit_status, ~term_signal) => exits := true;
+      let proc = spawnNode(~onExit, ~args=["--version"]);
+      wait(() => exits^ == true);
+      //Gc.finalise_last(() => collected := true, proc);
+      //wait(checkCollected);
     });
-  })
+  });
+
+  describe("server", ({test, _}) => {
+    test("connect / disconnect", ({expect}) => {
+      let namedPipe = NamedPipe.create("server-test") |> NamedPipe.toString;
+
+      let messages = ref([]);
+
+      let dispatch = msg => messages := [msg, ...messages^];
+
+      let exits = ref(false);
+      let onExit = (proc, ~exit_status, ~term_signal) => exits := true;
+      let _ =
+        spawnNode(
+          ~onExit,
+          ~args=["node/immediate-disconnect-client.js", namedPipe],
+        );
+      let _ = Transport.start(~namedPipe, ~dispatch) |> Result.get_ok;
+
+      wait(() => messages^ |> List.exists(msg => msg == Transport.Connected));
+
+      wait(() => {exits^});
+
+      wait(() => {
+        messages^ |> List.exists(msg => msg == Transport.Disconnected)
+      });
+
+      expect.equal(exits^, true);
+    })
+  });
 });
