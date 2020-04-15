@@ -51,10 +51,10 @@ module Msg: {
 
 module NamedPipe: {
   type t;
-  
+
   let create: string => t;
   let toString: t => string;
-}
+};
 
 module Client: {
   type t;

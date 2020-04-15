@@ -43,15 +43,8 @@ let handler = msg => {
 let onError = prerr_endline;
 
 let pipe = NamedPipe.create("hello");
-prerr_endline ("PIPE: " ++ (pipe |> NamedPipe.toString));
+prerr_endline("PIPE: " ++ (pipe |> NamedPipe.toString));
 
-let client =
-  Client.start(
-    ~namedPipe=pipe,
-    ~initData,
-    ~handler,
-    ~onError,
-    (),
-  );
+let client = Client.start(~namedPipe=pipe, ~initData, ~handler, ~onError, ());
 
 Luv.Loop.run() |> ignore;

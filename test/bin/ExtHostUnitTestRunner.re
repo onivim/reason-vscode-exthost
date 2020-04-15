@@ -1,3 +1,3 @@
-prerr_endline (Sys.getcwd());
+prerr_endline(Sys.getcwd());
 ExtHostTest.TestFramework.cli();
 ExtHostTransportTest.TestFramework.cli();
