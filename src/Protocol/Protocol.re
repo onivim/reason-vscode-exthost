@@ -2,22 +2,30 @@ open Transport;
 
 let bind = (f, opt) => Result.bind(opt, f);
 
+module Log = (val Timber.Log.withNamespace("Transport"));
+
 module ByteParser = {
-  let readUInt8 = bytes => {
-    let result = Bytes.get_uint8(bytes, 0);
-    let bytes = Bytes.sub(bytes, 1, Bytes.length(bytes) - 1);
-    Ok((result, bytes));
+  exception UInt32ConversionException;
+
+  let int32_unsigned_to_int_exn = i => {
+    switch (Int32.unsigned_to_int(i)) {
+    | None => raise(UInt32ConversionException)
+    | Some(v) => v
+    };
   };
 
-  let readUInt32: bytes => result((int, bytes), string) =
+  let readUInt8 = bytes => {
+    let uint8 = Bytes.get_uint8(bytes, 0);
+    let bytes = Bytes.sub(bytes, 1, Bytes.length(bytes) - 1);
+    (uint8, bytes);
+  };
+
+  let readUInt32: bytes => (int, bytes) =
     bytes => {
-      Bytes.get_int32_be(bytes, 0)
-      |> Int32.unsigned_to_int
-      |> Option.to_result(~none="Invalid conversion of int32 to int")
-      |> Result.map((v: int) => {
-           let bytes = Bytes.sub(bytes, 4, Bytes.length(bytes) - 4);
-           (v, bytes);
-         });
+      let v = Bytes.get_int32_be(bytes, 0) |> int32_unsigned_to_int_exn;
+
+      let bytes = Bytes.sub(bytes, 4, Bytes.length(bytes) - 4);
+      (v, bytes);
     };
 
   let readShortString = bytes => {
@@ -25,44 +33,55 @@ module ByteParser = {
     let strLength = Bytes.get_uint8(bytes, 0);
     let str = Bytes.sub(bytes, 1, strLength) |> Bytes.to_string;
     let bytes = Bytes.sub(bytes, 1 + strLength, len - 1 - strLength);
-    Ok((str, bytes));
+    (str, bytes);
   };
 
-  let readLongString: bytes => result((string, bytes), string) =
+  let readLongString: bytes => (string, bytes) =
     bytes => {
       let len = Bytes.length(bytes);
-      let maybeStrLength =
-        Bytes.get_int32_be(bytes, 0) |> Int32.unsigned_to_int;
-      maybeStrLength
-      |> Option.to_result(~none="Invalid conversion of int32 to int")
-      |> Result.map(strLen => {
-           let str = Bytes.sub(bytes, 4, strLen) |> Bytes.to_string;
-           let bytes = Bytes.sub(bytes, 4 + strLen, len - 4 - strLen);
-           (str, bytes);
-         });
+      let strLen = Bytes.get_int32_be(bytes, 0) |> int32_unsigned_to_int_exn;
+      let str = Bytes.sub(bytes, 4, strLen) |> Bytes.to_string;
+      let bytes = Bytes.sub(bytes, 4 + strLen, len - 4 - strLen);
+      (str, bytes);
     };
 
   let readJSONArgs = bytes => {
-    bytes
-    |> readUInt8
-    |> bind(((rpcId, buffer)) =>
-         buffer
-         |> readShortString
-         |> Result.map(((method, buffer)) => (rpcId, method, buffer))
-       )
-    |> bind(((rpcId, method, buffer)) =>
-         buffer
-         |> readLongString
-         |> Result.map(((args, buffer)) => (rpcId, method, args))
-       )
-    |> bind(((rpcId, method, args)) =>
-         try({
-           let json = args |> Yojson.Safe.from_string;
-           Ok((rpcId, method, json));
-         }) {
-         | exn => Error(Printexc.to_string(exn))
-         }
-       );
+    let (rpcId, bytes) = readUInt8(bytes);
+    let (method, bytes) = readShortString(bytes);
+    let (argsString, bytes) = readLongString(bytes);
+    let json = argsString |> Yojson.Safe.from_string;
+    (rpcId, method, json);
+  };
+
+  let readMixedArgs = bytes => {
+    let (rpcId, bytes) = readUInt8(bytes);
+    let (method, bytes) = readShortString(bytes);
+
+    let (arrayLength, bytes) = readUInt8(bytes);
+
+    let argString = 1;
+    let argBuffer = 2;
+    //let argUndefined = 3;
+
+    let rec loop = (bytes, idx) =>
+      if (idx >= arrayLength) {
+        [];
+      } else {
+        let (argType, bytes) = readUInt8(bytes);
+        if (argType == argString || argType == argBuffer) {
+          let (str, bytes) = readLongString(bytes);
+          let result =
+            argType == argString
+              ? `String(str) : Yojson.Safe.from_string(str);
+          [result, ...loop(bytes, idx + 1)];
+        } else {
+          [`Null, ...loop(bytes, idx + 1)];
+        };
+      };
+
+    let args = `List(loop(bytes, 0));
+
+    (rpcId, method, args);
   };
 };
 
@@ -159,7 +178,6 @@ module Message = {
       let {body, _}: Packet.t = packet;
 
       let len = Bytes.length(body);
-      prerr_endline("ofPacket - length: " ++ string_of_int(len));
 
       if (len == 0) {
         Ok(Unknown(body));
@@ -175,48 +193,48 @@ module Message = {
         )
         |> Result.ok;
       } else {
-        body
-        |> ByteParser.readUInt8
-        |> bind(((messageType, buffer)) => {
-             buffer
-             |> ByteParser.readUInt32
-             |> Result.map(((reqId, buffer)) =>
-                  (messageType, reqId, buffer)
-                )
-           })
-        |> bind(((messageType, requestId, buffer)) => {
-             prerr_endline(
-               "Got a message of type: " ++ string_of_int(messageType),
-             );
-             if (messageType == requestJsonArgs
-                 || messageType == requestJsonArgsWithCancellation) {
-               let usesCancellationToken =
-                 messageType == requestJsonArgsWithCancellation;
-               buffer
-               |> ByteParser.readJSONArgs
-               |> Result.map(((rpcId, method, args)) => {
-                    RequestJSONArgs({
-                      requestId,
-                      rpcId,
-                      method,
-                      args,
-                      usesCancellationToken,
-                    })
-                  });
-             } else if (messageType == replyOkEmpty) {
-               Ok(ReplyOk({requestId, payload: Empty}));
-             } else if (messageType == replyErrError) {
-               buffer
-               |> ByteParser.readLongString
-               |> Result.map(((str, _bytes)) => {
-                    ReplyError({requestId, payload: Message(str)})
-                  });
-             } else {
-               Error(
-                 "Unknown message - type: " ++ string_of_int(messageType),
-               );
-             };
-           });
+        try({
+          let (messageType, bytes) = ByteParser.readUInt8(body);
+          let (requestId, bytes) = ByteParser.readUInt32(bytes);
+          if (messageType == requestJsonArgs
+              || messageType == requestJsonArgsWithCancellation) {
+            let usesCancellationToken =
+              messageType == requestJsonArgsWithCancellation;
+            let (rpcId, method, args) = ByteParser.readJSONArgs(bytes);
+            Ok(
+              RequestJSONArgs({
+                requestId,
+                rpcId,
+                method,
+                args,
+                usesCancellationToken,
+              }),
+            );
+          } else if (messageType == requestMixedArgs
+                     || messageType == requestMixedArgsWithCancellation) {
+            let usesCancellationToken =
+              messageType == requestMixedArgsWithCancellation;
+            let (rpcId, method, args) = ByteParser.readMixedArgs(bytes);
+            Ok(
+              RequestJSONArgs({
+                requestId,
+                rpcId,
+                method,
+                args,
+                usesCancellationToken,
+              }),
+            );
+          } else if (messageType == replyOkEmpty) {
+            Ok(ReplyOk({requestId, payload: Empty}));
+          } else if (messageType == replyErrError) {
+            let (msg, _bytes) = ByteParser.readLongString(bytes);
+            Ok(ReplyError({requestId, payload: Message(msg)}));
+          } else {
+            Error("Unknown message - type: " ++ string_of_int(messageType));
+          };
+        }) {
+        | e => Error(Printexc.to_string(e))
+        };
       };
     };
 

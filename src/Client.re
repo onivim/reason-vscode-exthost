@@ -2,6 +2,8 @@ type reply = unit;
 
 type t = Protocol.t;
 
+module Log = (val Timber.Log.withNamespace("Client"));
+
 let start =
     (
       ~initialConfiguration=Types.Configuration.empty,
@@ -15,27 +17,23 @@ let start =
   let send = message =>
     switch (protocolClient^) {
     | None => ()
-    | Some(protocol) =>
-      prerr_endline("SENDING!");
-      Protocol.send(~message, protocol);
+    | Some(protocol) => Protocol.send(~message, protocol)
     };
 
   let dispatch = msg => {
     Protocol.Message.(
       switch (msg) {
       | Incoming.Ready =>
-        prerr_endline("Got ready!");
+        Log.info("Ready");
 
         send(Outgoing.Initialize({requestId: 1, initData}));
         handler(Ready) |> ignore;
 
       | Incoming.Initialized =>
-        prerr_endline("Got initialized!");
+        Log.info("Initialized");
 
         let rpcId =
           "ExtHostConfiguration" |> Handlers.stringToId |> Option.get;
-
-        prerr_endline("RPC ID: " ++ string_of_int(rpcId));
 
         send(
           Outgoing.RequestJSONArgs({

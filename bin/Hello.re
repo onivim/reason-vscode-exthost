@@ -7,6 +7,9 @@ module Uri = Types.Uri;
 
 Printexc.record_backtrace(true);
 
+Timber.App.enable();
+Timber.App.setLevel(Timber.Level.trace);
+
 let extensions =
   InitData.Extension.[
     {
