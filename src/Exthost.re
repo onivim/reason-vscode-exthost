@@ -5,4 +5,9 @@ module Commands = Commands;
 module DebugService = DebugService;
 module Telemetry = Telemetry;
 
+module NamedPipe = NamedPipe;
+
 module Msg = Msg;
+
+module Protocol = Protocol;
+module Transport = Transport;

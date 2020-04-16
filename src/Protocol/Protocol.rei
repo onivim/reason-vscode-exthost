@@ -38,7 +38,6 @@ module Message: {
           payload: error,
         })
       | Unknown(bytes)
-      | Closing
       | Disconnected;
   };
 

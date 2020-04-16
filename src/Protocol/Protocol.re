@@ -124,7 +124,6 @@ module Message = {
           payload: error,
         })
       | Unknown(bytes)
-      | Closing
       | Disconnected;
   };
 
@@ -342,7 +341,6 @@ let start =
     | Transport.Error(msg) => onError(msg)
     | Transport.Connected => dispatch(Message.Incoming.Connected)
     | Transport.Disconnected => dispatch(Message.Incoming.Disconnected)
-    | Transport.Closing => dispatch(Message.Incoming.Closing)
     | Transport.Received(packet) => onPacket(packet)
     };
 

@@ -49,6 +49,13 @@ module Msg: {
       });
 };
 
+module NamedPipe: {
+  type t;
+
+  let create: string => t;
+  let toString: t => string;
+};
+
 module Client: {
   type t;
 
@@ -58,11 +65,16 @@ module Client: {
   let start:
     (
       ~initialConfiguration: Types.Configuration.t=?,
-      ~namedPipe: string,
+      ~namedPipe: NamedPipe.t,
       ~initData: Types.InitData.t,
       ~handler: Msg.t => option(reply),
       ~onError: string => unit,
       unit
     ) =>
     result(t, string);
+
+  let close: t => unit;
 };
+
+module Protocol = Protocol;
+module Transport = Transport;

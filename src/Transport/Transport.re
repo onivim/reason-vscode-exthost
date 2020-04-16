@@ -211,15 +211,15 @@ module Packet = {
   };
 };
 
+[@deriving show]
 type msg =
   | Connected
-  | Received(Packet.t)
+  | Received([@opaque] Packet.t)
   | Error(string)
-  | Disconnected
-  | Closing;
+  | Disconnected;
 
 type t = {
-  server: Luv.Pipe.t,
+  maybeServer: ref(option(Luv.Pipe.t)),
   maybeClient: ref(option(Luv.Pipe.t)),
 };
 
@@ -309,7 +309,8 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
 
   serverPipeResult |> Result.iter(listen);
 
-  serverPipeResult |> Result.map(server => {server, maybeClient});
+  serverPipeResult
+  |> Result.map(server => {maybeServer: ref(Some(server)), maybeClient});
 };
 
 let send = (~packet, {maybeClient}) =>
@@ -321,9 +322,48 @@ let send = (~packet, {maybeClient}) =>
     Log.tracef(m => m("Sending %d bytes", byteLen));
     let buffer = Luv.Buffer.from_bytes(bytes);
     // TODO: FIX PENDING BYTES
-    Luv.Stream.write(c, [buffer], (err, count) => {
-      Log.tracef(m => m("Wrote %d bytes", count))
-    });
+    Luv.Stream.write(
+      c,
+      [buffer],
+      (err, count) => {
+        Log.tracef(m => m("Wrote %d bytes", count));
+
+        if (count !== byteLen) {
+          Log.errorf(m =>
+            m(
+              "Error - bytes not matching expected: tried to send: %d actually sent:  %d",
+              byteLen,
+              count,
+            )
+          );
+        };
+      },
+    );
   };
 
-let close = ({server, _}) => Luv.Handle.close(server, ignore);
+let close = ({maybeServer, maybeClient}) => {
+  let logResult = (~msg, res) => {
+    switch (res) {
+    | Ok () => Log.infof(m => m("%s: success", msg))
+    | Error(err) =>
+      Log.errorf(m => m("ERROR %s: %s", msg, Luv.Error.strerror(err)))
+    };
+  };
+
+  let logCallback = (~msg, ()) => Log.info(msg);
+
+  maybeClient^
+  |> Option.iter(client => {
+       Luv.Stream.shutdown(client, logResult(~msg="Client stream shutdown"));
+       Luv.Handle.close(client, logCallback(~msg="Client handle close"));
+     });
+
+  maybeServer^
+  |> Option.iter(server => {
+       Luv.Stream.shutdown(server, logResult(~msg="Server shutdown"));
+       Luv.Handle.close(server, logCallback(~msg="Server handle close"));
+     });
+
+  maybeClient := None;
+  maybeServer := None;
+};
