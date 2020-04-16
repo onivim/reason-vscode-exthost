@@ -1,4 +1,4 @@
-module Log = (val Timber.Log.withNamespace("Transport"));
+module Log = (val Timber.Log.withNamespace("ExtHost.Transport"));
 
 module Packet = {
   module Constants = {
@@ -223,50 +223,58 @@ type t = {
   maybeClient: ref(option(Luv.Pipe.t)),
 };
 
-let start = (~namedPipe: string, ~dispatch: msg => unit) => {
-  let maybeClient = ref(None);
+let readBuffer:
+  (Packet.Parser.t, Luv.Buffer.t) =>
+  (Packet.Parser.t, result(list(Packet.t), string)) =
+  (parser, buffer: Luv.Buffer.t) => {
+    let bytes = Luv.Buffer.to_bytes(buffer);
+    let byteLen = Bytes.length(bytes);
+    Log.tracef(m => m("Read %d bytes", byteLen));
 
-  let handleError = (msg, err) => {
-    let msg = Printf.sprintf("%s: %s\n", msg, Luv.Error.strerror(err));
-    dispatch(Error(msg));
+    try({
+      let (newParser, packets) = Packet.Parser.parse(bytes, parser);
+      (newParser, Ok(packets));
+    }) {
+    | exn => (Packet.Parser.initial, Error(Printexc.to_string(exn)))
+    };
   };
 
-  let read = clientPipe => {
-    let parser = ref(Packet.Parser.initial);
+let handleError = (~dispatch, msg, err) => {
+  let msg = Printf.sprintf("%s: %s\n", msg, Luv.Error.strerror(err));
+  dispatch(Error(msg));
+};
 
-    let readBuffer = (buffer: Luv.Buffer.t) => {
-      let bytes = Luv.Buffer.to_bytes(buffer);
-      let byteLen = Bytes.length(bytes);
-      Log.tracef(m => m("Got %d bytes from client", byteLen));
+let read = (~dispatch, clientPipe) => {
+  let parser = ref(Packet.Parser.initial);
 
-      let (newParser, packets) =
-        try(Packet.Parser.parse(bytes, parser^)) {
-        // TODO: Proper exception
-        | exn =>
-          dispatch(Error(Printexc.to_string(exn)));
-          (Packet.Parser.initial, []);
+  let handleClosed = () => {
+    Log.info("Connection closed.");
+    dispatch(Disconnected);
+    Luv.Handle.close(clientPipe, ignore);
+  };
+
+  let handleError = handleError(~dispatch);
+
+  Luv.Stream.read_start(
+    clientPipe,
+    fun
+    | Error(`EOF) => handleClosed()
+    | Error(msg) => handleError("read_start", msg)
+    | Ok(buffer) => {
+        let (newParser, packetResult) = readBuffer(parser^, buffer);
+        parser := newParser;
+        switch (packetResult) {
+        | Ok(packets) =>
+          List.iter(packet => dispatch(Received(packet)), packets)
+        | Error(msg) => dispatch(Error(msg))
         };
+      },
+  );
+};
 
-      parser := newParser;
-      packets |> List.iter(packet => dispatch(Received(packet)));
-    };
-
-    maybeClient := Some(clientPipe);
-    let handleClosed = () => {
-      Log.info("Connection closed.");
-      maybeClient := None;
-      dispatch(Disconnected);
-      Luv.Handle.close(clientPipe, ignore);
-    };
-
-    Luv.Stream.read_start(
-      clientPipe,
-      fun
-      | Error(`EOF) => handleClosed()
-      | Error(msg) => handleError("read_start", msg)
-      | Ok(buffer) => readBuffer(buffer),
-    );
-  };
+let start = (~namedPipe: string, ~dispatch: msg => unit) => {
+  let handleError = handleError(~dispatch);
+  let maybeClient = ref(None);
 
   // Listen for an incoming connection...
   let listen = serverPipe => {
@@ -296,8 +304,9 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
         switch (clientPipeResult) {
         | Ok(pipe) =>
           Log.info("Established connection.");
+          maybeClient := Some(pipe);
           dispatch(Connected);
-          read(pipe);
+          read(~dispatch, pipe);
         | Error(err) => handleError("listen", err)
         };
       },
@@ -340,6 +349,27 @@ let send = (~packet, {maybeClient}) =>
       },
     );
   };
+
+let connect = (~namedPipe: string, ~dispatch: msg => unit) => {
+  let clientPipeResult =
+    Luv.Pipe.init() |> Result.map_error(Luv.Error.strerror);
+
+  let client = clientPipeResult |> Result.get_ok;
+
+  Luv.Pipe.connect(
+    client,
+    namedPipe,
+    fun
+    | Error(msg) =>
+      dispatch(Error("Connect error: " ++ Luv.Error.strerror(msg)))
+    | Ok () => {
+        dispatch(Connected);
+        read(~dispatch, client);
+      },
+  );
+
+  Ok({maybeServer: ref(None), maybeClient: ref(Some(client))});
+};
 
 let close = ({maybeServer, maybeClient}) => {
   let logResult = (~msg, res) => {

@@ -67,13 +67,30 @@ module Test = {
 
   let uniqueId = ref(0);
 
-  let start = scriptPath => {
+  let getNamedPipe = () => {
     let namedPipe =
       NamedPipe.create("transport-test-" ++ (uniqueId^ |> string_of_int))
       |> NamedPipe.toString;
     incr(uniqueId);
+    namedPipe;
+  };
+
+  let packetFromString = str => {
+    let bytes = str |> Bytes.of_string;
+    let packet = Transport.Packet.create(~bytes, ~packetType=Regular, ~id=0);
+    packet;
+  };
+
+  let packetMatchesString = (str, {body, _}: Packet.t) => {
+    let packetString = Bytes.to_string(body);
+    String.equal(str, packetString);
+  };
+
+  let start = scriptPath => {
     let messages = ref([]);
     let dispatch = msg => messages := [msg, ...messages^];
+
+    let namedPipe = getNamedPipe();
 
     let exits = ref(false);
     let onExit = (proc, ~exit_status, ~term_signal) => exits := true;
@@ -150,9 +167,7 @@ describe("Transport", ({describe, _}) => {
       Waiter.waitForCollection(~name="transport", transport);
     });
     test("echo", ({expect}) => {
-      let bytes = "Hello, world!" |> Bytes.of_string;
-      let packet =
-        Transport.Packet.create(~bytes, ~packetType=Regular, ~id=0);
+      let packet = Test.packetFromString("Hello, world!");
 
       let {transport, _}: Test.t =
         Test.start("node/echo-client.js")
@@ -162,7 +177,7 @@ describe("Transport", ({describe, _}) => {
              ~name="echo reply",
              fun
              | Transport.Received(packet) =>
-               packet.Packet.body |> Bytes.to_string == "Hello, world!"
+               Test.packetMatchesString("Hello, world!", packet)
              | _ => false,
            )
         |> Test.closeTransport
@@ -170,5 +185,71 @@ describe("Transport", ({describe, _}) => {
 
       Waiter.waitForCollection(~name="transport", transport);
     });
+  });
+
+  describe("client connect", ({test, _}) => {
+    test("simple client/server", ({expect, _}) => {
+      let namedPipe = Test.getNamedPipe();
+
+      let serverConnected = ref(false);
+      let serverGotMessage = ref(false);
+      let serverDispatch =
+        fun
+        | Transport.Connected => serverConnected := true
+        | Transport.Received(packet) => {
+            expect.equal(
+              Test.packetMatchesString("Hello from client!", packet),
+              true,
+            );
+            serverGotMessage := true;
+          }
+        | _ => ();
+
+      let server =
+        Transport.start(~namedPipe, ~dispatch=serverDispatch) |> Result.get_ok;
+
+      let clientConnected = ref(false);
+      let clientGotMessage = ref(false);
+      let clientDispatch =
+        fun
+        | Transport.Connected => clientConnected := true
+        | Transport.Received(packet) => {
+            expect.equal(
+              Test.packetMatchesString("Hello from server!", packet),
+              true,
+            );
+            clientGotMessage := true;
+          }
+        | _ => ();
+
+      let client =
+        Transport.connect(~namedPipe, ~dispatch=clientDispatch)
+        |> Result.get_ok;
+
+      Waiter.wait(~name="Wait for client / server connection", () => {
+        serverConnected^ && clientConnected^
+      });
+
+      Transport.send(
+        ~packet=Test.packetFromString("Hello from client!"),
+        client,
+      );
+
+      Waiter.wait(~name="Wait for server to receive message", () => {
+        serverGotMessage^
+      });
+
+      Transport.send(
+        ~packet=Test.packetFromString("Hello from server!"),
+        server,
+      );
+
+      Waiter.wait(~name="Wait for client to receive message", () => {
+        clientGotMessage^
+      });
+
+      Transport.close(client);
+      Transport.close(server);
+    })
   });
 });
