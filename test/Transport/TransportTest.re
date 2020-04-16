@@ -77,7 +77,7 @@ module Test = {
 
     let exits = ref(false);
     let onExit = (proc, ~exit_status, ~term_signal) => exits := true;
-    let _ = spawnNode(~onExit, ~args=[scriptPath, namedPipe]);
+    let _: Luv.Process.t = spawnNode(~onExit, ~args=[scriptPath, namedPipe]);
     let transport = Transport.start(~namedPipe, ~dispatch) |> Result.get_ok;
 
     {exits, messages, transport};
@@ -121,7 +121,7 @@ describe("Transport", ({describe, _}) => {
     test("node process GC", ({expect}) => {
       let exits = ref(false);
       let onExit = (proc, ~exit_status, ~term_signal) => exits := true;
-      let _proc = spawnNode(~onExit, ~args=["--version"]);
+      let _proc: Luv.Process.t = spawnNode(~onExit, ~args=["--version"]);
       Waiter.wait(() => exits^ == true);
       // TODO:
       // waitForCollection(~name="proc", proc);
