@@ -155,13 +155,13 @@ module Message = {
   let requestJsonArgsWithCancellation = 2;
   let requestMixedArgs = 3;
   let requestMixedArgsWithCancellation = 4;
-//  let acknowledged = 5;
-//  let cancel = 6;
+  //  let acknowledged = 5;
+  //  let cancel = 6;
   let replyOkEmpty = 7;
-//  let replyOkBuffer = 8;
+  //  let replyOkBuffer = 8;
   let replyOkJSON = 9;
   let replyErrError = 10;
-//  let replyErrEmpty = 11;
+  //  let replyErrEmpty = 11;
 
   let ofPacket: Packet.t => result(Incoming.t, string) =
     (packet: Packet.t) => {
@@ -316,15 +316,14 @@ let start =
     ) => {
   let transport = ref(None);
 
-  let onPacket = (packet: Transport.Packet.t) => {
-      if (packet.header.packetType == Packet.Regular) {
-        let message = Message.ofPacket(packet);
+  let onPacket = (packet: Transport.Packet.t) =>
+    if (packet.header.packetType == Packet.Regular) {
+      let message = Message.ofPacket(packet);
 
-        message |> Result.iter(dispatch);
+      message |> Result.iter(dispatch);
 
-        message |> Result.iter_error(onError);
-      }
-  };
+      message |> Result.iter_error(onError);
+    };
 
   let transportHandler = msg =>
     switch (msg) {

@@ -254,8 +254,7 @@ let sendCore = (~dispatch, ~packet, client) => {
     (err, count) => {
       Log.tracef(m => m("Wrote %d bytes", count));
 
-      err
-      |> Result.iter_error(handleError(~dispatch, "Stream.write"));
+      err |> Result.iter_error(handleError(~dispatch, "Stream.write"));
 
       if (count !== byteLen) {
         Log.errorf(m =>
@@ -364,7 +363,12 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
 
   serverPipeResult
   |> Result.map(server =>
-       {dispatch, queuedMessages, maybeServer: ref(Some(server)), maybeClient}
+       {
+         dispatch,
+         queuedMessages,
+         maybeServer: ref(Some(server)),
+         maybeClient,
+       }
      );
 };
 
