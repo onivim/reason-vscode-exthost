@@ -185,6 +185,34 @@ describe("Transport", ({describe, _}) => {
 
       Waiter.waitForCollection(~name="transport", transport);
     });
+    test("echo: queued message before send", ({expect}) => {
+      let packet1 = Test.packetFromString("Hello, world1!");
+      let packet2 = Test.packetFromString("Hello, world2!");
+
+      let {transport, _}: Test.t =
+        Test.start("node/echo-client.js")
+        |> Test.send(packet1)
+        |> Test.send(packet2)
+        |> Test.waitForMessage(~name="connect", Transport.Connected)
+        |> Test.waitForMessagef(
+             ~name="echo reply 1",
+             fun
+             | Transport.Received(packet) =>
+               Test.packetMatchesString("Hello, world1!", packet)
+             | _ => false,
+           )
+        |> Test.waitForMessagef(
+             ~name="echo reply 2",
+             fun
+             | Transport.Received(packet) =>
+               Test.packetMatchesString("Hello, world2!", packet)
+             | _ => false,
+           )
+        |> Test.closeTransport
+        |> Test.waitForExit;
+
+      Waiter.waitForCollection(~name="transport", transport);
+    });
   });
 
   describe("client connect", ({test, _}) => {

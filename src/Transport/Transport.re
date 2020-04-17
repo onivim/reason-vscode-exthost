@@ -221,6 +221,10 @@ type msg =
 type t = {
   maybeServer: ref(option(Luv.Pipe.t)),
   maybeClient: ref(option(Luv.Pipe.t)),
+  // [queueMessages] keeps track of messages that we tried
+  // to send prior to connection. Once we connect, we should
+  // try sending again.
+  queuedMessages: ref(list(Packet.t)),
 };
 
 let readBuffer:
@@ -242,6 +246,40 @@ let readBuffer:
 let handleError = (~dispatch, msg, err) => {
   let msg = Printf.sprintf("%s: %s\n", msg, Luv.Error.strerror(err));
   dispatch(Error(msg));
+};
+
+let sendCore = (~packet, client) => {
+  let bytes = Packet.toBytes(packet);
+  let byteLen = bytes |> Bytes.length;
+  Log.tracef(m => m("Sending %d bytes", byteLen));
+  let buffer = Luv.Buffer.from_bytes(bytes);
+  // TODO: FIX PENDING BYTES
+  Luv.Stream.write(
+    client,
+    [buffer],
+    (err, count) => {
+      Log.tracef(m => m("Wrote %d bytes", count));
+
+      if (count !== byteLen) {
+        Log.errorf(m =>
+          m(
+            "Error - bytes not matching expected: tried to send: %d actually sent:  %d",
+            byteLen,
+            count,
+          )
+        );
+      };
+    },
+  );
+};
+
+let flushQueuedMessages = (queuedMessages, client) => {
+  let packets = queuedMessages^ |> List.rev;
+  queuedMessages := [];
+
+  let send = packet => sendCore(~packet, client);
+
+  packets |> List.iter(send);
 };
 
 let read = (~dispatch, clientPipe) => {
@@ -272,9 +310,15 @@ let read = (~dispatch, clientPipe) => {
   );
 };
 
+let clearQueuedMessages = queuedMessages => {
+  Log.warn("Clearing queued messages due to failure.");
+  queuedMessages := [];
+};
+
 let start = (~namedPipe: string, ~dispatch: msg => unit) => {
   let handleError = handleError(~dispatch);
   let maybeClient = ref(None);
+  let queuedMessages = ref([]);
 
   // Listen for an incoming connection...
   let listen = serverPipe => {
@@ -305,9 +349,12 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
         | Ok(pipe) =>
           Log.info("Established connection.");
           maybeClient := Some(pipe);
+          flushQueuedMessages(queuedMessages, pipe);
           dispatch(Connected);
           read(~dispatch, pipe);
-        | Error(err) => handleError("listen", err)
+        | Error(err) =>
+          clearQueuedMessages(queuedMessages);
+          handleError("listen", err);
         };
       },
     );
@@ -319,35 +366,15 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
   serverPipeResult |> Result.iter(listen);
 
   serverPipeResult
-  |> Result.map(server => {maybeServer: ref(Some(server)), maybeClient});
+  |> Result.map(server =>
+       {queuedMessages, maybeServer: ref(Some(server)), maybeClient}
+     );
 };
 
-let send = (~packet, {maybeClient}) =>
+let send = (~packet, {maybeClient, queuedMessages}) =>
   switch (maybeClient^) {
-  | None => Log.warn("Tried to send without a client.")
-  | Some(c) =>
-    let bytes = Packet.toBytes(packet);
-    let byteLen = bytes |> Bytes.length;
-    Log.tracef(m => m("Sending %d bytes", byteLen));
-    let buffer = Luv.Buffer.from_bytes(bytes);
-    // TODO: FIX PENDING BYTES
-    Luv.Stream.write(
-      c,
-      [buffer],
-      (err, count) => {
-        Log.tracef(m => m("Wrote %d bytes", count));
-
-        if (count !== byteLen) {
-          Log.errorf(m =>
-            m(
-              "Error - bytes not matching expected: tried to send: %d actually sent:  %d",
-              byteLen,
-              count,
-            )
-          );
-        };
-      },
-    );
+  | None => queuedMessages := [packet, ...queuedMessages^]
+  | Some(client) => sendCore(~packet, client)
   };
 
 let connect = (~namedPipe: string, ~dispatch: msg => unit) => {
@@ -356,19 +383,27 @@ let connect = (~namedPipe: string, ~dispatch: msg => unit) => {
 
   let client = clientPipeResult |> Result.get_ok;
 
+  let queuedMessages = ref([]);
+
   Luv.Pipe.connect(
     client,
     namedPipe,
     fun
-    | Error(msg) =>
-      dispatch(Error("Connect error: " ++ Luv.Error.strerror(msg)))
+    | Error(msg) => {
+        clearQueuedMessages(queuedMessages);
+        dispatch(Error("Connect error: " ++ Luv.Error.strerror(msg)));
+      }
     | Ok () => {
         dispatch(Connected);
         read(~dispatch, client);
       },
   );
 
-  Ok({maybeServer: ref(None), maybeClient: ref(Some(client))});
+  Ok({
+    maybeServer: ref(None),
+    maybeClient: ref(Some(client)),
+    queuedMessages,
+  });
 };
 
 let close = ({maybeServer, maybeClient}) => {
