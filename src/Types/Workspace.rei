@@ -21,6 +21,8 @@ type t = {
   folders: list(Folder.t),
 };
 
+let empty: t;
+
 let create: (~folders: list(Folder.t)=?, ~id: string, string) => t;
 
 let fromUri: (~name: string, ~id: string, Uri.t) => t;

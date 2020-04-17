@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "ocaml": "^4.8.0",
-    "@opam/ocaml-lsp-server": "github:ocaml/ocaml-lsp:ocaml-lsp-server.opam#04733ed"
+    "@opam/ocaml-lsp-server": "github:ocaml/ocaml-lsp:ocaml-lsp-server.opam#04733ed",
+    "@reason-native/rely": "^2.2.0"
   }
 }

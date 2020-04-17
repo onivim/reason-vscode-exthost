@@ -93,7 +93,7 @@ module Test = {
     let namedPipe = getNamedPipe();
 
     let exits = ref(false);
-    let onExit = (proc, ~exit_status, ~term_signal) => exits := true;
+    let onExit = (_proc, ~exit_status as _, ~term_signal as _) => exits := true;
     let _: Luv.Process.t = spawnNode(~onExit, ~args=[scriptPath, namedPipe]);
     let transport = Transport.start(~namedPipe, ~dispatch) |> Result.get_ok;
 
@@ -101,7 +101,7 @@ module Test = {
   };
 
   let waitForMessagef = (~name, f, {messages, _} as context) => {
-    Waiter.wait(() => messages^ |> List.exists(f));
+    Waiter.wait(~name, () => messages^ |> List.exists(f));
     context;
   };
 
@@ -115,7 +115,7 @@ module Test = {
   };
 
   let send = (packet, {transport, _} as context) => {
-    Transport.send(packet, transport);
+    Transport.send(~packet, transport);
     context;
   };
 
@@ -127,17 +127,17 @@ module Test = {
 
 describe("Transport", ({describe, _}) => {
   describe("process sanity checks", ({test, _}) => {
-    test("start node", ({expect}) => {
+    test("start node", (_) => {
       let exits = ref(false);
-      let onExit = (proc, ~exit_status, ~term_signal) => exits := true;
+      let onExit = (_proc, ~exit_status as _, ~term_signal as _) => exits := true;
       let _ = spawnNode(~onExit, ~args=["--version"]);
 
       Waiter.wait(() => exits^ == true);
     });
 
-    test("node process GC", ({expect}) => {
+    test("node process GC", (_) => {
       let exits = ref(false);
-      let onExit = (proc, ~exit_status, ~term_signal) => exits := true;
+      let onExit = (_proc, ~exit_status as _, ~term_signal as _) => exits := true;
       let _proc: Luv.Process.t = spawnNode(~onExit, ~args=["--version"]);
       Waiter.wait(() => exits^ == true);
       // TODO:
@@ -148,7 +148,7 @@ describe("Transport", ({describe, _}) => {
   });
 
   describe("server", ({test, _}) => {
-    test("disconnect from server--side", ({expect}) => {
+    test("disconnect from server--side", (_) => {
       let {transport, _}: Test.t =
         Test.start("node/client.js")
         |> Test.waitForMessage(~name="connect", Transport.Connected)
@@ -157,7 +157,7 @@ describe("Transport", ({describe, _}) => {
 
       Waiter.waitForCollection(~name="transport", transport);
     });
-    test("disconnect from client-side", ({expect}) => {
+    test("disconnect from client-side", (_) => {
       let {transport, _}: Test.t =
         Test.start("node/immediate-disconnect-client.js")
         |> Test.waitForMessage(~name="connect", Transport.Connected)
@@ -166,7 +166,7 @@ describe("Transport", ({describe, _}) => {
 
       Waiter.waitForCollection(~name="transport", transport);
     });
-    test("echo", ({expect}) => {
+    test("echo", (_) => {
       let packet = Test.packetFromString("Hello, world!");
 
       let {transport, _}: Test.t =
@@ -185,7 +185,7 @@ describe("Transport", ({describe, _}) => {
 
       Waiter.waitForCollection(~name="transport", transport);
     });
-    test("echo: queued message before send", ({expect}) => {
+    test("echo: queued message before send", (_) => {
       let packet1 = Test.packetFromString("Hello, world1!");
       let packet2 = Test.packetFromString("Hello, world2!");
 

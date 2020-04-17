@@ -1,7 +1,5 @@
 open Transport;
 
-let bind = (f, opt) => Result.bind(opt, f);
-
 module Log = (val Timber.Log.withNamespace("Transport"));
 
 module ByteParser = {
@@ -48,7 +46,7 @@ module ByteParser = {
   let readJSONArgs = bytes => {
     let (rpcId, bytes) = readUInt8(bytes);
     let (method, bytes) = readShortString(bytes);
-    let (argsString, bytes) = readLongString(bytes);
+    let (argsString, _) = readLongString(bytes);
     let json = argsString |> Yojson.Safe.from_string;
     (rpcId, method, json);
   };
@@ -157,19 +155,13 @@ module Message = {
   let requestJsonArgsWithCancellation = 2;
   let requestMixedArgs = 3;
   let requestMixedArgsWithCancellation = 4;
-  let acknowledged = 5;
-  let cancel = 6;
+//  let acknowledged = 5;
+//  let cancel = 6;
   let replyOkEmpty = 7;
-  let replyOkBuffer = 8;
+//  let replyOkBuffer = 8;
   let replyOkJSON = 9;
   let replyErrError = 10;
-  let replyErrEmpty = 11;
-
-  let terminate = (~id) => {
-    let bytes = Bytes.create(1);
-    Bytes.set_uint8(bytes, 0, 3);
-    Packet.create(~id, ~bytes, ~packetType=Regular);
-  };
+//  let replyErrEmpty = 11;
 
   let ofPacket: Packet.t => result(Incoming.t, string) =
     (packet: Packet.t) => {
@@ -247,8 +239,8 @@ module Message = {
       | Initialize({requestId, _}) => requestId
       | RequestJSONArgs({requestId, _}) => requestId
       | ReplyOKEmpty({requestId}) => requestId
-      | ReplyOKJSON({requestId, json}) => requestId
-      | ReplyError({requestId, error}) => requestId;
+      | ReplyOKJSON({requestId, _}) => requestId
+      | ReplyError({requestId, _}) => requestId;
 
     let id = getRequestId(msg);
     let requestId = id |> Int32.of_int;
@@ -325,7 +317,6 @@ let start =
   let transport = ref(None);
 
   let onPacket = (packet: Transport.Packet.t) => {
-    Message.(
       if (packet.header.packetType == Packet.Regular) {
         let message = Message.ofPacket(packet);
 
@@ -333,7 +324,6 @@ let start =
 
         message |> Result.iter_error(onError);
       }
-    );
   };
 
   let transportHandler = msg =>

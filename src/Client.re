@@ -41,7 +41,7 @@ let start =
             rpcId,
             method: "$initializeConfiguration",
             args:
-              Types.Configuration.empty
+              initialConfiguration
               |> Types.Configuration.to_yojson
               |> (json => `List([json])),
             usesCancellationToken: false,
@@ -60,12 +60,12 @@ let start =
           }),
         );
 
-      | Incoming.ReplyError({requestId, payload}) =>
+      | Incoming.ReplyError({payload, _}) =>
         switch (payload) {
         | Message(str) => onError(str)
         | Empty => onError("Unknown / Empty")
         }
-      | Incoming.RequestJSONArgs({requestId, rpcId, method, args}) =>
+      | Incoming.RequestJSONArgs({requestId, rpcId, method, args, _}) =>
         Handlers.handle(rpcId, method, args)
         |> Result.iter(msg => handler(msg) |> ignore);
         send(Outgoing.ReplyOKEmpty({requestId: requestId}));
