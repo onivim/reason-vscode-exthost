@@ -114,13 +114,6 @@ module Packet = {
     Bytes.cat(headerBytes, body);
   };
 
-  let toString = ({header, body}) =>
-    Printf.sprintf(
-      "[Header]: %s\n [Body]:\n---|%s|---\n",
-      header |> Header.toString,
-      body |> Bytes.to_string,
-    );
-
   module Parser = {
     type state =
       | WaitingForHeader
@@ -225,6 +218,7 @@ type t = {
   // to send prior to connection. Once we connect, we should
   // try sending again.
   queuedMessages: ref(list(Packet.t)),
+  dispatch: msg => unit,
 };
 
 let readBuffer:
@@ -248,7 +242,7 @@ let handleError = (~dispatch, msg, err) => {
   dispatch(Error(msg));
 };
 
-let sendCore = (~packet, client) => {
+let sendCore = (~dispatch, ~packet, client) => {
   let bytes = Packet.toBytes(packet);
   let byteLen = bytes |> Bytes.length;
   Log.tracef(m => m("Sending %d bytes", byteLen));
@@ -259,6 +253,8 @@ let sendCore = (~packet, client) => {
     [buffer],
     (err, count) => {
       Log.tracef(m => m("Wrote %d bytes", count));
+
+      err |> Result.iter_error(handleError(~dispatch, "Stream.write"));
 
       if (count !== byteLen) {
         Log.errorf(m =>
@@ -273,13 +269,13 @@ let sendCore = (~packet, client) => {
   );
 };
 
-let flushQueuedMessages = (queuedMessages, client) => {
+let flushQueuedMessages = (~dispatch, queuedMessages, client) => {
   let packets = queuedMessages^ |> List.rev;
   queuedMessages := [];
 
   let send = packet => sendCore(~packet, client);
 
-  packets |> List.iter(send);
+  packets |> List.iter(send(~dispatch));
 };
 
 let read = (~dispatch, clientPipe) => {
@@ -349,7 +345,7 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
         | Ok(pipe) =>
           Log.info("Established connection.");
           maybeClient := Some(pipe);
-          flushQueuedMessages(queuedMessages, pipe);
+          flushQueuedMessages(~dispatch, queuedMessages, pipe);
           dispatch(Connected);
           read(~dispatch, pipe);
         | Error(err) =>
@@ -367,14 +363,19 @@ let start = (~namedPipe: string, ~dispatch: msg => unit) => {
 
   serverPipeResult
   |> Result.map(server =>
-       {queuedMessages, maybeServer: ref(Some(server)), maybeClient}
+       {
+         dispatch,
+         queuedMessages,
+         maybeServer: ref(Some(server)),
+         maybeClient,
+       }
      );
 };
 
-let send = (~packet, {maybeClient, queuedMessages}) =>
+let send = (~packet, {maybeClient, queuedMessages, dispatch, _}) =>
   switch (maybeClient^) {
   | None => queuedMessages := [packet, ...queuedMessages^]
-  | Some(client) => sendCore(~packet, client)
+  | Some(client) => sendCore(~dispatch, ~packet, client)
   };
 
 let connect = (~namedPipe: string, ~dispatch: msg => unit) => {
@@ -403,10 +404,12 @@ let connect = (~namedPipe: string, ~dispatch: msg => unit) => {
     maybeServer: ref(None),
     maybeClient: ref(Some(client)),
     queuedMessages,
+    dispatch,
   });
 };
 
-let close = ({maybeServer, maybeClient}) => {
+let close = ({maybeServer, maybeClient, queuedMessages, _}) => {
+  queuedMessages := [];
   let logResult = (~msg, res) => {
     switch (res) {
     | Ok () => Log.infof(m => m("%s: success", msg))

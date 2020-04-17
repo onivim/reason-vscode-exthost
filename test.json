@@ -6,7 +6,7 @@
   "override": {
       "build": ["dune build -p vscode-exthost,vscode-exthost-test -j4"],
       "dependencies": {
-	  "@opam/odoc": "*",
+          "@opam/odoc": "*",
           "@reason-native/rely": "2.2.0"
       },
       "install": [

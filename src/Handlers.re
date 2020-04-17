@@ -18,7 +18,7 @@ type t =
 let getName =
   fun
   | MainThreadHandler({name, _}) => name
-  | ExtHostHandler({name}) => name;
+  | ExtHostHandler({name, _}) => name;
 
 let getId =
   fun
