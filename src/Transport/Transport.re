@@ -114,6 +114,12 @@ module Packet = {
     Bytes.cat(headerBytes, body);
   };
 
+  let equal = (p1, p2) => {
+    let p1Bytes = toBytes(p1);
+    let p2Bytes = toBytes(p2);
+    Bytes.equal(p1Bytes, p2Bytes);
+  };
+
   module Parser = {
     type state =
       | WaitingForHeader
@@ -121,12 +127,15 @@ module Packet = {
 
     type t = {
       state,
-      bytes: Bytes.t,
+      bytes,
     };
+
+    type parser = t;
 
     let initial = {state: WaitingForHeader, bytes: Bytes.create(0)};
 
-    let addBytes = (bytes: Bytes.t, parser) => {
+    let addBuffer = (buffer: Luv.Buffer.t, parser) => {
+      let bytes = Luv.Buffer.to_bytes(buffer);
       let bytes = Bytes.cat(parser.bytes, bytes);
       {...parser, bytes};
     };
@@ -172,8 +181,8 @@ module Packet = {
       };
     };
 
-    let parse = (bytes, initialParser) => {
-      let parser = addBytes(bytes, initialParser);
+    let parse = (buffer, initialParser) => {
+      let parser = addBuffer(buffer, initialParser);
 
       let canParseMore = parser => {
         switch (parser.state) {
@@ -225,12 +234,11 @@ let readBuffer:
   (Packet.Parser.t, Luv.Buffer.t) =>
   (Packet.Parser.t, result(list(Packet.t), string)) =
   (parser, buffer: Luv.Buffer.t) => {
-    let bytes = Luv.Buffer.to_bytes(buffer);
-    let byteLen = Bytes.length(bytes);
+    let byteLen = Luv.Buffer.size(buffer);
     Log.tracef(m => m("Read %d bytes", byteLen));
 
     try({
-      let (newParser, packets) = Packet.Parser.parse(bytes, parser);
+      let (newParser, packets) = Packet.Parser.parse(buffer, parser);
       (newParser, Ok(packets));
     }) {
     | exn => (Packet.Parser.initial, Error(Printexc.to_string(exn)))

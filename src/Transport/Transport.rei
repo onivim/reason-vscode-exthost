@@ -26,6 +26,16 @@ module Packet: {
   };
 
   let create: (~bytes: Bytes.t, ~packetType: packetType, ~id: int) => t;
+  let toBytes: t => bytes;
+  let equal: (t, t) => bool;
+
+  module Parser: {
+    type parser;
+
+    let initial: parser;
+
+    let parse: (Luv.Buffer.t, parser) => (parser, list(t));
+  };
 };
 
 [@deriving show]
