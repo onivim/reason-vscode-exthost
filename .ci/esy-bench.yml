@@ -6,4 +6,4 @@ steps:
   - script: esy @bench build
     displayName: 'esy @bench build'
   - script: esy @bench run
-    displayName: 'esy @bench x ReveryBench'
+    displayName: 'esy @bench run'
