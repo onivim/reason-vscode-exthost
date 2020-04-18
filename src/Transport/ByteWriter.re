@@ -17,6 +17,8 @@ let isFull = ({idx, totalSize, _}) => idx >= totalSize;
 
 let empty = Bytes.create(0) |> Luv.Buffer.from_bytes;
 
+let getBytes = ({bytes, _}) => bytes;
+
 let write = (buffer: Luv.Buffer.t, {bytes, idx, totalSize}) => {
 	let size = Luv.Buffer.size(buffer);
 

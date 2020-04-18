@@ -120,92 +120,56 @@ let equal = (p1, p2) => {
 };
 
 module Parser = {
-  type state =
-    | WaitingForHeader
-    | WaitingForBody(Header.t);
-
-  type t = {
-    state,
-    bytes,
-  };
+  type t =
+    | WaitingForHeader(ByteWriter.t)
+    | WaitingForBody(Header.t, ByteWriter.t);
 
   type parser = t;
 
-  let initial = {state: WaitingForHeader, bytes: Bytes.create(0)};
-
-  let addBuffer = (buffer: Luv.Buffer.t, parser) => {
-    let bytes = Luv.Buffer.to_bytes(buffer);
-    let bytes = Bytes.cat(parser.bytes, bytes);
-    {...parser, bytes};
-  };
-
-  let parseOne = ({state, bytes as accumulatedBytes}: t) => {
-    let totalLen = Bytes.length(bytes);
-
-    switch (state) {
-    | WaitingForHeader =>
-      if (totalLen >= Constants.headerByteLength) {
-        let headerBytes =
-          Bytes.sub(accumulatedBytes, 0, Constants.headerByteLength);
-        let remainingBytes =
-          Bytes.sub(
-            accumulatedBytes,
-            Constants.headerByteLength,
-            totalLen - Constants.headerByteLength,
-          );
-
-        let header = Header.ofBytes(headerBytes) |> Result.get_ok;
-
-        ({state: WaitingForBody(header), bytes: remainingBytes}, None);
-      } else {
-        (
-          // We didn't get enough bytes to parse the header - so keep accumulating
-          {state: WaitingForHeader, bytes: accumulatedBytes},
-          None,
-        );
-      }
-    | WaitingForBody(header) =>
-      let {length, _}: Header.t = header;
-
-      // Do we have enough bytes?
-      if (totalLen >= length) {
-        let body = Bytes.sub(accumulatedBytes, 0, length);
-        let packet = {header, body};
-        let remainingBytes =
-          Bytes.sub(accumulatedBytes, length, totalLen - length);
-        ({state: WaitingForHeader, bytes: remainingBytes}, Some(packet));
-      } else {
-        ({state: WaitingForBody(header), bytes: accumulatedBytes}, None);
-      };
-    };
-  };
+  let initial = WaitingForHeader(ByteWriter.create(
+  Constants.headerByteLength
+  ));
 
   let parse = (buffer, initialParser) => {
-    let parser = addBuffer(buffer, initialParser);
+    let rec loop = (buffer, messages, state) => {
+      if (Luv.Buffer.size(buffer) == 0) {
+        (state, messages)
+      } else {
+        let (newState, newBuffer, newMessages) =
+        switch (state) {
+        | WaitingForHeader(byteWriter) => 
+          let (newByteWriter, remainingBuffer) = ByteWriter.write(buffer, byteWriter);
+          let newState = if (ByteWriter.isFull(newByteWriter)) {
+            let header = ByteWriter.getBytes(newByteWriter)
+            |> Header.ofBytes
+            |> Result.get_ok; 
 
-    let canParseMore = parser => {
-      switch (parser.state) {
-      | WaitingForHeader =>
-        Bytes.length(parser.bytes) >= Constants.headerByteLength
-      | WaitingForBody({length, _}) => Bytes.length(parser.bytes) >= length
-      };
+            let bodyLength = header.length;
+            let bodyByteWriter = ByteWriter.create(bodyLength);
+            WaitingForBody(header, bodyByteWriter);
+          } else {
+            WaitingForHeader(newByteWriter);
+          };
+          (newState, remainingBuffer, messages);
+        | WaitingForBody(header, byteWriter) =>
+          let (newByteWriter, remainingBuffer) = ByteWriter.write(buffer, byteWriter);
+          let (newState, messages) = if(ByteWriter.isFull(newByteWriter)) {
+            let body = ByteWriter.getBytes(newByteWriter);
+            let newState = WaitingForHeader(ByteWriter.create(
+            Constants.headerByteLength));
+            let newMessage = Packet.{header: header, body: body};
+            (newState, [newMessage, ...messages]);
+          } else {
+            (WaitingForBody(header, newByteWriter), messages)
+          };
+          (newState, remainingBuffer, messages);
+        }
+
+        loop(newBuffer, newMessages, newState);
+      }
     };
 
-    let rec loop = (parser, messages) =>
-      if (canParseMore(parser)) {
-        let (newParser, maybeMessage) = parseOne(parser);
-        let newMessages =
-          switch (maybeMessage) {
-          | Some(msg) => [msg, ...messages]
-          | None => messages
-          };
-
-        loop(newParser, newMessages);
-      } else {
-        (parser, messages);
-      };
-
-    let (parser, revMessages) = loop(parser, []);
+    let (parser, revMessages) = loop(buffer, [], initialParser);
     let messages = List.rev(revMessages);
     (parser, messages);
   };

@@ -6,7 +6,7 @@ let options = Reperf.Options.create(~iterations=100, ());
 
 module Constants = {
   let individualPacketSize = 8192;
-  let packetCount = 100;
+  let packetCount = 1000;
   let totalSize = packetCount * individualPacketSize;
 };
 
