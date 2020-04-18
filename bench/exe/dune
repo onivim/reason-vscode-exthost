@@ -1,0 +1,6 @@
+(executable
+    (name Bench)
+    (public_name ExtHostBench)
+    (libraries vscode-exthost-bench.lib)
+    (package vscode-exthost-bench)
+)

@@ -1,0 +1,7 @@
+(library
+    (name ExtHostBench)
+    (public_name vscode-exthost-bench.lib)
+    (ocamlopt_flags -linkall)
+    (libraries
+      reperf.lib
+))
