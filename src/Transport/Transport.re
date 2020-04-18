@@ -1,5 +1,6 @@
 module Log = (val Timber.Log.withNamespace("ExtHost.Transport"));
 
+module ByteWriter = ByteWriter;
 module Packet = Packet;
 
 [@deriving show]
