@@ -1,0 +1,16 @@
+{
+  "source": "./package.json",
+  "scripts": {
+      "run": "esy '@bench' x ExtHostBench"
+  },
+  "override": {
+      "build": ["dune build -p vscode-exthost,vscode-exthost-bench -j4"],
+      "install": [
+          "esy-installer vscode-exthost.install",
+          "esy-installer vscode-exthost-bench.install"
+      ],
+    "dependencies": {
+      "reperf": "^1.5.0"
+    }
+  }
+}

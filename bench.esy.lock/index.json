@@ -80,10 +80,10 @@
         "path": ".",
         "manifest": "package.json"
       },
-      "overrides": [],
+      "overrides": [ "bench.json" ],
       "dependencies": [
-        "refmterr@3.3.0@d41d8cd9", "ocaml@4.9.0@d41d8cd9",
-        "@opam/yojson@opam:1.7.0@7056d985",
+        "reperf@1.5.0@d41d8cd9", "refmterr@3.3.0@d41d8cd9",
+        "ocaml@4.9.0@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
         "@opam/ppx_deriving_yojson@opam:3.5.2@ca415fbe",
         "@opam/ppx_deriving@opam:4.4.1@208c6c8f",
         "@opam/luv@opam:0.5.1@a530d73c", "@opam/dune@opam:2.5.0@aef1678b",
@@ -91,8 +91,7 @@
         "@glennsl/timber@1.1.0@d41d8cd9", "@esy-ocaml/reason@3.6.0@d41d8cd9"
       ],
       "devDependencies": [
-        "reperf@1.5.0@d41d8cd9", "ocaml@4.9.0@d41d8cd9",
-        "@reason-native/rely@2.2.0@d41d8cd9",
+        "ocaml@4.9.0@d41d8cd9", "@reason-native/rely@2.2.0@d41d8cd9",
         "@opam/ocaml-lsp-server@github:ocaml/ocaml-lsp:ocaml-lsp-server.opam#04733ed@d41d8cd9"
       ]
     },
@@ -181,7 +180,7 @@
         "opam": {
           "name": "yojson",
           "version": "1.7.0",
-          "path": "esy.lock/opam/yojson.1.7.0"
+          "path": "bench.esy.lock/opam/yojson.1.7.0"
         }
       },
       "overrides": [],
@@ -209,7 +208,7 @@
         "opam": {
           "name": "uutf",
           "version": "1.0.2",
-          "path": "esy.lock/opam/uutf.1.0.2"
+          "path": "bench.esy.lock/opam/uutf.1.0.2"
         }
       },
       "overrides": [],
@@ -237,7 +236,7 @@
         "opam": {
           "name": "uchar",
           "version": "0.0.2",
-          "path": "esy.lock/opam/uchar.0.0.2"
+          "path": "bench.esy.lock/opam/uchar.0.0.2"
         }
       },
       "overrides": [],
@@ -260,7 +259,7 @@
         "opam": {
           "name": "tyxml",
           "version": "4.4.0",
-          "path": "esy.lock/opam/tyxml.4.4.0"
+          "path": "bench.esy.lock/opam/tyxml.4.4.0"
         }
       },
       "overrides": [],
@@ -288,7 +287,7 @@
         "opam": {
           "name": "topkg",
           "version": "1.0.1",
-          "path": "esy.lock/opam/topkg.1.0.1"
+          "path": "bench.esy.lock/opam/topkg.1.0.1"
         }
       },
       "overrides": [],
@@ -314,7 +313,7 @@
         "opam": {
           "name": "stdlib-shims",
           "version": "0.1.0",
-          "path": "esy.lock/opam/stdlib-shims.0.1.0"
+          "path": "bench.esy.lock/opam/stdlib-shims.0.1.0"
         }
       },
       "overrides": [],
@@ -336,7 +335,7 @@
         "opam": {
           "name": "seq",
           "version": "base",
-          "path": "esy.lock/opam/seq.base"
+          "path": "bench.esy.lock/opam/seq.base"
         }
       },
       "overrides": [],
@@ -358,7 +357,7 @@
         "opam": {
           "name": "result",
           "version": "1.5",
-          "path": "esy.lock/opam/result.1.5"
+          "path": "bench.esy.lock/opam/result.1.5"
         }
       },
       "overrides": [],
@@ -383,7 +382,7 @@
         "opam": {
           "name": "re",
           "version": "1.9.0",
-          "path": "esy.lock/opam/re.1.9.0"
+          "path": "bench.esy.lock/opam/re.1.9.0"
         }
       },
       "overrides": [],
@@ -409,7 +408,7 @@
         "opam": {
           "name": "ptime",
           "version": "0.8.5",
-          "path": "esy.lock/opam/ptime.0.8.5"
+          "path": "bench.esy.lock/opam/ptime.0.8.5"
         }
       },
       "overrides": [],
@@ -437,7 +436,7 @@
         "opam": {
           "name": "printbox",
           "version": "0.5",
-          "path": "esy.lock/opam/printbox.0.5"
+          "path": "bench.esy.lock/opam/printbox.0.5"
         }
       },
       "overrides": [],
@@ -465,7 +464,7 @@
         "opam": {
           "name": "ppxfind",
           "version": "1.4",
-          "path": "esy.lock/opam/ppxfind.1.4"
+          "path": "bench.esy.lock/opam/ppxfind.1.4"
         }
       },
       "overrides": [],
@@ -493,7 +492,7 @@
         "opam": {
           "name": "ppx_yojson_conv_lib",
           "version": "v0.13.0",
-          "path": "esy.lock/opam/ppx_yojson_conv_lib.v0.13.0"
+          "path": "bench.esy.lock/opam/ppx_yojson_conv_lib.v0.13.0"
         }
       },
       "overrides": [],
@@ -519,7 +518,7 @@
         "opam": {
           "name": "ppx_tools",
           "version": "6.0+4.08.0",
-          "path": "esy.lock/opam/ppx_tools.6.0+4.08.0"
+          "path": "bench.esy.lock/opam/ppx_tools.6.0+4.08.0"
         }
       },
       "overrides": [],
@@ -544,7 +543,7 @@
         "opam": {
           "name": "ppx_deriving_yojson",
           "version": "3.5.2",
-          "path": "esy.lock/opam/ppx_deriving_yojson.3.5.2"
+          "path": "bench.esy.lock/opam/ppx_deriving_yojson.3.5.2"
         }
       },
       "overrides": [],
@@ -576,7 +575,7 @@
         "opam": {
           "name": "ppx_deriving",
           "version": "4.4.1",
-          "path": "esy.lock/opam/ppx_deriving.4.4.1"
+          "path": "bench.esy.lock/opam/ppx_deriving.4.4.1"
         }
       },
       "overrides": [],
@@ -610,7 +609,7 @@
         "opam": {
           "name": "ppx_derivers",
           "version": "1.2.1",
-          "path": "esy.lock/opam/ppx_derivers.1.2.1"
+          "path": "bench.esy.lock/opam/ppx_derivers.1.2.1"
         }
       },
       "overrides": [],
@@ -636,13 +635,13 @@
         "opam": {
           "name": "ocamlfind",
           "version": "1.8.1",
-          "path": "esy.lock/opam/ocamlfind.1.8.1"
+          "path": "bench.esy.lock/opam/ocamlfind.1.8.1"
         }
       },
       "overrides": [
         {
           "opamoverride":
-            "esy.lock/overrides/opam__s__ocamlfind_opam__c__1.8.1_opam_override"
+            "bench.esy.lock/overrides/opam__s__ocamlfind_opam__c__1.8.1_opam_override"
         }
       ],
       "dependencies": [
@@ -664,13 +663,13 @@
         "opam": {
           "name": "ocamlbuild",
           "version": "0.14.0",
-          "path": "esy.lock/opam/ocamlbuild.0.14.0"
+          "path": "bench.esy.lock/opam/ocamlbuild.0.14.0"
         }
       },
       "overrides": [
         {
           "opamoverride":
-            "esy.lock/overrides/opam__s__ocamlbuild_opam__c__0.14.0_opam_override"
+            "bench.esy.lock/overrides/opam__s__ocamlbuild_opam__c__0.14.0_opam_override"
         }
       ],
       "dependencies": [
@@ -691,7 +690,7 @@
         "opam": {
           "name": "ocaml-migrate-parsetree",
           "version": "1.7.1",
-          "path": "esy.lock/opam/ocaml-migrate-parsetree.1.7.1"
+          "path": "bench.esy.lock/opam/ocaml-migrate-parsetree.1.7.1"
         }
       },
       "overrides": [],
@@ -746,7 +745,7 @@
         "opam": {
           "name": "merlin-extend",
           "version": "0.5",
-          "path": "esy.lock/opam/merlin-extend.0.5"
+          "path": "bench.esy.lock/opam/merlin-extend.0.5"
         }
       },
       "overrides": [],
@@ -771,7 +770,7 @@
         "opam": {
           "name": "menhirSdk",
           "version": "20200211",
-          "path": "esy.lock/opam/menhirSdk.20200211"
+          "path": "bench.esy.lock/opam/menhirSdk.20200211"
         }
       },
       "overrides": [],
@@ -796,7 +795,7 @@
         "opam": {
           "name": "menhirLib",
           "version": "20200211",
-          "path": "esy.lock/opam/menhirLib.20200211"
+          "path": "bench.esy.lock/opam/menhirLib.20200211"
         }
       },
       "overrides": [],
@@ -821,13 +820,13 @@
         "opam": {
           "name": "menhir",
           "version": "20200211",
-          "path": "esy.lock/opam/menhir.20200211"
+          "path": "bench.esy.lock/opam/menhir.20200211"
         }
       },
       "overrides": [
         {
           "opamoverride":
-            "esy.lock/overrides/opam__s__menhir_opam__c__20200211_opam_override"
+            "bench.esy.lock/overrides/opam__s__menhir_opam__c__20200211_opam_override"
         }
       ],
       "dependencies": [
@@ -855,7 +854,7 @@
         "opam": {
           "name": "luv",
           "version": "0.5.1",
-          "path": "esy.lock/opam/luv.0.5.1"
+          "path": "bench.esy.lock/opam/luv.0.5.1"
         }
       },
       "overrides": [],
@@ -886,7 +885,7 @@
         "opam": {
           "name": "logs",
           "version": "0.7.0",
-          "path": "esy.lock/opam/logs.0.7.0"
+          "path": "bench.esy.lock/opam/logs.0.7.0"
         }
       },
       "overrides": [],
@@ -913,7 +912,7 @@
         "opam": {
           "name": "junit",
           "version": "2.0.2",
-          "path": "esy.lock/opam/junit.2.0.2"
+          "path": "bench.esy.lock/opam/junit.2.0.2"
         }
       },
       "overrides": [],
@@ -939,7 +938,7 @@
         "opam": {
           "name": "integers",
           "version": "0.3.0",
-          "path": "esy.lock/opam/integers.0.3.0"
+          "path": "bench.esy.lock/opam/integers.0.3.0"
         }
       },
       "overrides": [],
@@ -964,7 +963,7 @@
         "opam": {
           "name": "fmt",
           "version": "0.8.8",
-          "path": "esy.lock/opam/fmt.0.8.8"
+          "path": "bench.esy.lock/opam/fmt.0.8.8"
         }
       },
       "overrides": [],
@@ -995,7 +994,7 @@
         "opam": {
           "name": "fix",
           "version": "20200131",
-          "path": "esy.lock/opam/fix.20200131"
+          "path": "bench.esy.lock/opam/fix.20200131"
         }
       },
       "overrides": [],
@@ -1020,7 +1019,7 @@
         "opam": {
           "name": "easy-format",
           "version": "1.3.2",
-          "path": "esy.lock/opam/easy-format.1.3.2"
+          "path": "bench.esy.lock/opam/easy-format.1.3.2"
         }
       },
       "overrides": [],
@@ -1045,7 +1044,7 @@
         "opam": {
           "name": "dune",
           "version": "2.5.0",
-          "path": "esy.lock/opam/dune.2.5.0"
+          "path": "bench.esy.lock/opam/dune.2.5.0"
         }
       },
       "overrides": [],
@@ -1072,7 +1071,7 @@
         "opam": {
           "name": "decoders-yojson",
           "version": "0.3.0",
-          "path": "esy.lock/opam/decoders-yojson.0.3.0"
+          "path": "bench.esy.lock/opam/decoders-yojson.0.3.0"
         }
       },
       "overrides": [],
@@ -1101,7 +1100,7 @@
         "opam": {
           "name": "decoders",
           "version": "0.3.0",
-          "path": "esy.lock/opam/decoders.0.3.0"
+          "path": "bench.esy.lock/opam/decoders.0.3.0"
         }
       },
       "overrides": [],
@@ -1126,13 +1125,13 @@
         "opam": {
           "name": "ctypes",
           "version": "0.17.1",
-          "path": "esy.lock/opam/ctypes.0.17.1"
+          "path": "bench.esy.lock/opam/ctypes.0.17.1"
         }
       },
       "overrides": [
         {
           "opamoverride":
-            "esy.lock/overrides/opam__s__ctypes_opam__c__0.17.1_opam_override"
+            "bench.esy.lock/overrides/opam__s__ctypes_opam__c__0.17.1_opam_override"
         }
       ],
       "dependencies": [
@@ -1158,7 +1157,7 @@
         "opam": {
           "name": "cppo",
           "version": "1.6.6",
-          "path": "esy.lock/opam/cppo.1.6.6"
+          "path": "bench.esy.lock/opam/cppo.1.6.6"
         }
       },
       "overrides": [],
@@ -1182,13 +1181,13 @@
         "opam": {
           "name": "conf-pkg-config",
           "version": "1.1",
-          "path": "esy.lock/opam/conf-pkg-config.1.1"
+          "path": "bench.esy.lock/opam/conf-pkg-config.1.1"
         }
       },
       "overrides": [
         {
           "opamoverride":
-            "esy.lock/overrides/opam__s__conf_pkg_config_opam__c__1.1_opam_override"
+            "bench.esy.lock/overrides/opam__s__conf_pkg_config_opam__c__1.1_opam_override"
         }
       ],
       "dependencies": [
@@ -1207,7 +1206,7 @@
         "opam": {
           "name": "conf-m4",
           "version": "1",
-          "path": "esy.lock/opam/conf-m4.1"
+          "path": "bench.esy.lock/opam/conf-m4.1"
         }
       },
       "overrides": [],
@@ -1227,7 +1226,7 @@
         "opam": {
           "name": "biniou",
           "version": "1.2.1",
-          "path": "esy.lock/opam/biniou.1.2.1"
+          "path": "bench.esy.lock/opam/biniou.1.2.1"
         }
       },
       "overrides": [],
@@ -1250,7 +1249,7 @@
         "opam": {
           "name": "base-unix",
           "version": "base",
-          "path": "esy.lock/opam/base-unix.base"
+          "path": "bench.esy.lock/opam/base-unix.base"
         }
       },
       "overrides": [],
@@ -1267,7 +1266,7 @@
         "opam": {
           "name": "base-threads",
           "version": "base",
-          "path": "esy.lock/opam/base-threads.base"
+          "path": "bench.esy.lock/opam/base-threads.base"
         }
       },
       "overrides": [],
@@ -1284,7 +1283,7 @@
         "opam": {
           "name": "base-bytes",
           "version": "base",
-          "path": "esy.lock/opam/base-bytes.base"
+          "path": "bench.esy.lock/opam/base-bytes.base"
         }
       },
       "overrides": [],
@@ -1309,7 +1308,7 @@
         "opam": {
           "name": "atdgen-runtime",
           "version": "2.2.1",
-          "path": "esy.lock/opam/atdgen-runtime.2.2.1"
+          "path": "bench.esy.lock/opam/atdgen-runtime.2.2.1"
         }
       },
       "overrides": [],
@@ -1338,7 +1337,7 @@
         "opam": {
           "name": "atdgen",
           "version": "2.2.1",
-          "path": "esy.lock/opam/atdgen.2.2.1"
+          "path": "bench.esy.lock/opam/atdgen.2.2.1"
         }
       },
       "overrides": [],
@@ -1368,7 +1367,7 @@
         "opam": {
           "name": "atd",
           "version": "2.2.1",
-          "path": "esy.lock/opam/atd.2.2.1"
+          "path": "bench.esy.lock/opam/atd.2.2.1"
         }
       },
       "overrides": [],
