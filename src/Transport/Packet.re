@@ -126,48 +126,53 @@ module Parser = {
 
   type parser = t;
 
-  let initial = WaitingForHeader(ByteWriter.create(
-  Constants.headerByteLength
-  ));
+  let initial =
+    WaitingForHeader(ByteWriter.create(Constants.headerByteLength));
 
   let parse = (buffer, initialParser) => {
-    let rec loop = (buffer, messages, state) => {
+    let rec loop = (buffer, messages, state) =>
       if (Luv.Buffer.size(buffer) == 0) {
-        (state, messages)
+        (state, messages);
       } else {
         let (newState, newBuffer, newMessages) =
-        switch (state) {
-        | WaitingForHeader(byteWriter) => 
-          let (newByteWriter, remainingBuffer) = ByteWriter.write(buffer, byteWriter);
-          let newState = if (ByteWriter.isFull(newByteWriter)) {
-            let header = ByteWriter.getBytes(newByteWriter)
-            |> Header.ofBytes
-            |> Result.get_ok; 
+          switch (state) {
+          | WaitingForHeader(byteWriter) =>
+            let (newByteWriter, remainingBuffer) =
+              ByteWriter.write(buffer, byteWriter);
+            let newState =
+              if (ByteWriter.isFull(newByteWriter)) {
+                let header =
+                  ByteWriter.getBytes(newByteWriter)
+                  |> Header.ofBytes
+                  |> Result.get_ok;
 
-            let bodyLength = header.length;
-            let bodyByteWriter = ByteWriter.create(bodyLength);
-            WaitingForBody(header, bodyByteWriter);
-          } else {
-            WaitingForHeader(newByteWriter);
+                let bodyLength = header.length;
+                let bodyByteWriter = ByteWriter.create(bodyLength);
+                WaitingForBody(header, bodyByteWriter);
+              } else {
+                WaitingForHeader(newByteWriter);
+              };
+            (newState, remainingBuffer, messages);
+          | WaitingForBody(header, byteWriter) =>
+            let (newByteWriter, remainingBuffer) =
+              ByteWriter.write(buffer, byteWriter);
+            let (newState, messages) =
+              if (ByteWriter.isFull(newByteWriter)) {
+                let body = ByteWriter.getBytes(newByteWriter);
+                let newState =
+                  WaitingForHeader(
+                    ByteWriter.create(Constants.headerByteLength),
+                  );
+                let newMessage = Packet.{header, body};
+                (newState, [newMessage, ...messages]);
+              } else {
+                (WaitingForBody(header, newByteWriter), messages);
+              };
+            (newState, remainingBuffer, messages);
           };
-          (newState, remainingBuffer, messages);
-        | WaitingForBody(header, byteWriter) =>
-          let (newByteWriter, remainingBuffer) = ByteWriter.write(buffer, byteWriter);
-          let (newState, messages) = if(ByteWriter.isFull(newByteWriter)) {
-            let body = ByteWriter.getBytes(newByteWriter);
-            let newState = WaitingForHeader(ByteWriter.create(
-            Constants.headerByteLength));
-            let newMessage = Packet.{header: header, body: body};
-            (newState, [newMessage, ...messages]);
-          } else {
-            (WaitingForBody(header, newByteWriter), messages)
-          };
-          (newState, remainingBuffer, messages);
-        }
 
         loop(newBuffer, newMessages, newState);
-      }
-    };
+      };
 
     let (parser, revMessages) = loop(buffer, [], initialParser);
     let messages = List.rev(revMessages);
