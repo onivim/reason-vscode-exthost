@@ -20,23 +20,41 @@ describe("Transport.ByteWriter", ({test, _}) => {
 
     expect.int(Luv.Buffer.size(outBuffer)).toBe(0);
   });
+  test("zero item buffer, overflow", ({expect}) => {
+    
+    let bw = ByteWriter.create(0);
+    let (newByteWriter, outBuffer) = ByteWriter.write(buf1, bw);
+
+    expect.bool(ByteWriter.isFull(newByteWriter)).toBe(true);
+
+    expect.int(Luv.Buffer.size(outBuffer)).toBe(1);
+  });
   test("single item buffer, single write", ({expect}) => {
     
     let bw = ByteWriter.create(1);
     let (newByteWriter, outBuffer) = ByteWriter.write(buf1, bw);
 
     expect.bool(ByteWriter.isFull(newByteWriter)).toBe(true);
-
     expect.int(Luv.Buffer.size(outBuffer)).toBe(0);
   });
 
   test("single item buffer, overflow", ({expect}) => {
-    
     let bw = ByteWriter.create(1);
     let (newByteWriter, outBuffer) = ByteWriter.write(buf5, bw);
 
     expect.bool(ByteWriter.isFull(newByteWriter)).toBe(true);
-
     expect.int(Luv.Buffer.size(outBuffer)).toBe(4);
+  });
+  
+  test("larger buffer", ({expect}) => {
+    let bw = ByteWriter.create(10);
+    let (newByteWriter, outBuffer) = ByteWriter.write(buf5, bw);
+
+    expect.bool(ByteWriter.isFull(newByteWriter)).toBe(false);
+    expect.int(Luv.Buffer.size(outBuffer)).toBe(0);
+    
+    let (newByteWriter, outBuffer) = ByteWriter.write(buf5, newByteWriter);
+    expect.bool(ByteWriter.isFull(newByteWriter)).toBe(true);
+    expect.int(Luv.Buffer.size(outBuffer)).toBe(0);
   });
 });
