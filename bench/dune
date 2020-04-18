@@ -4,4 +4,5 @@
     (ocamlopt_flags -linkall)
     (libraries
       reperf.lib
+      vscode-exthost
 ))

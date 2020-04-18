@@ -118,7 +118,7 @@ module Packet = {
     let p1Bytes = toBytes(p1);
     let p2Bytes = toBytes(p2);
     Bytes.equal(p1Bytes, p2Bytes);
-  }
+  };
 
   module Parser = {
     type state =
@@ -127,14 +127,15 @@ module Packet = {
 
     type t = {
       state,
-      bytes: Bytes.t,
+      bytes,
     };
 
     type parser = t;
 
     let initial = {state: WaitingForHeader, bytes: Bytes.create(0)};
 
-    let addBytes = (bytes: Bytes.t, parser) => {
+    let addBuffer = (buffer: Luv.Buffer.t, parser) => {
+      let bytes = Luv.Buffer.to_bytes(buffer);
       let bytes = Bytes.cat(parser.bytes, bytes);
       {...parser, bytes};
     };
@@ -181,9 +182,7 @@ module Packet = {
     };
 
     let parse = (buffer, initialParser) => {
-      let bytes = Luv.Buffer.to_bytes(buffer);
-
-      let parser = addBytes(bytes, initialParser);
+      let parser = addBuffer(buffer, initialParser);
 
       let canParseMore = parser => {
         switch (parser.state) {
