@@ -1,3 +1,15 @@
+module ByteWriter: {
+  type t;
+
+  let create: int => t;
+
+  let isFull: t => bool;
+
+  let write: (Luv.Buffer.t, t) => (t, Luv.Buffer.t);
+
+  let getBytes: t => bytes;
+};
+
 module Packet: {
   type packetType =
     | Unspecified
