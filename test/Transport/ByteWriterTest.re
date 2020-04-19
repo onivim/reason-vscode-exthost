@@ -4,8 +4,6 @@ open Exthost;
 module Packet = Transport.Packet;
 module ByteWriter = Transport.ByteWriter;
 
-open Packet;
-
 let buf0 = Bytes.make(0, 'a') |> Luv.Buffer.from_bytes;
 let buf1 = Bytes.make(1, 'a') |> Luv.Buffer.from_bytes;
 let buf5 = Bytes.make(5, 'b') |> Luv.Buffer.from_bytes;

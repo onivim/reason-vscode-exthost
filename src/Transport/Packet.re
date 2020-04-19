@@ -163,7 +163,7 @@ module Parser = {
                   WaitingForHeader(
                     ByteWriter.create(Constants.headerByteLength),
                   );
-                let newMessage = Packet.{header, body};
+                let newMessage = {header, body};
                 (newState, [newMessage, ...messages]);
               } else {
                 (WaitingForBody(header, newByteWriter), messages);
