@@ -45,7 +45,6 @@ let sendCore = (~dispatch, ~packet, client) => {
   let byteLen = bytes |> Bytes.length;
   Log.tracef(m => m("Sending %d bytes", byteLen));
   let buffer = Luv.Buffer.from_bytes(bytes);
-  // TODO: FIX PENDING BYTES
   Luv.Stream.write(
     client,
     [buffer],
