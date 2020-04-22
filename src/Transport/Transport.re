@@ -51,18 +51,7 @@ let sendCore = (~dispatch, ~packet, client) => {
     [buffer],
     (err, count) => {
       Log.tracef(m => m("Wrote %d bytes", count));
-
       err |> Result.iter_error(handleError(~dispatch, "Stream.write"));
-
-      if (count !== byteLen) {
-        Log.errorf(m =>
-          m(
-            "Error - bytes not matching expected: tried to send: %d actually sent:  %d",
-            byteLen,
-            count,
-          )
-        );
-      };
     },
   );
 };
