@@ -4,6 +4,7 @@ type t =
   | Ready
   | Commands(Commands.msg)
   | DebugService(DebugService.msg)
+  | ExtensionService(ExtensionService.msg)
   | Telemetry(Telemetry.msg)
   | Initialized
   | Disconnected
