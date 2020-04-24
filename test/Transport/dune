@@ -3,5 +3,5 @@
     (public_name vscode-exthost-test.transport)
     (flags (:standard (-w -39)))
     (ocamlopt_flags -linkall -g)
-    (libraries rely.lib vscode-exthost)
+    (libraries rely.lib vscode-exthost vscode-exthost-test.lib)
 )

@@ -1,62 +1,9 @@
 open TestFramework;
 open Exthost;
+open TestLib;
 
 module Header = Transport.Packet.Header;
 module Packet = Transport.Packet;
-
-let spawnNode = (~onExit, ~args) => {
-  Luv.Process.spawn(
-    ~on_exit=onExit,
-    ~redirect=[
-      Luv.Process.inherit_fd(
-        ~fd=Luv.Process.stdin,
-        ~from_parent_fd=Luv.Process.stdin,
-        (),
-      ),
-      Luv.Process.inherit_fd(
-        ~fd=Luv.Process.stdout,
-        ~from_parent_fd=Luv.Process.stderr,
-        (),
-      ),
-      Luv.Process.inherit_fd(
-        ~fd=Luv.Process.stderr,
-        ~from_parent_fd=Luv.Process.stderr,
-        (),
-      ),
-    ],
-    "node",
-    ["node", ...args],
-  )
-  |> Result.get_ok;
-};
-
-module Waiter = {
-  let wait = (~name="TODO", condition) => {
-    let start = Unix.gettimeofday();
-    let delta = () => Unix.gettimeofday() -. start;
-
-    while (!condition() && delta() < 1.0) {
-      let _: bool = Luv.Loop.run(~mode=`NOWAIT, ());
-      Unix.sleepf(0.1);
-    };
-
-    if (!condition()) {
-      failwith("Condition failed: " ++ name);
-    };
-  };
-
-  let waitForCollection = (~name, item) => {
-    let collected = ref(false);
-
-    let checkCollected = () => {
-      Gc.full_major();
-      collected^ == true;
-    };
-
-    Gc.finalise_last(() => collected := true, item);
-    wait(~name="Waiting for GC to collect: " ++ name, checkCollected);
-  };
-};
 
 module Test = {
   type t = {
@@ -95,7 +42,7 @@ module Test = {
     let exits = ref(false);
     let onExit = (_proc, ~exit_status as _, ~term_signal as _) =>
       exits := true;
-    let _: Luv.Process.t = spawnNode(~onExit, ~args=[scriptPath, namedPipe]);
+    let _: Luv.Process.t = Node.spawn(~onExit, ~args=[scriptPath, namedPipe]);
     let transport = Transport.start(~namedPipe, ~dispatch) |> Result.get_ok;
 
     {exits, messages, transport};
@@ -132,7 +79,7 @@ describe("Transport", ({describe, _}) => {
       let exits = ref(false);
       let onExit = (_proc, ~exit_status as _, ~term_signal as _) =>
         exits := true;
-      let _ = spawnNode(~onExit, ~args=["--version"]);
+      let _ = Node.spawn(~onExit, ~args=["--version"]);
 
       Waiter.wait(() => exits^ == true);
     });
@@ -141,7 +88,7 @@ describe("Transport", ({describe, _}) => {
       let exits = ref(false);
       let onExit = (_proc, ~exit_status as _, ~term_signal as _) =>
         exits := true;
-      let _proc: Luv.Process.t = spawnNode(~onExit, ~args=["--version"]);
+      let _proc: Luv.Process.t = Node.spawn(~onExit, ~args=["--version"]);
       Waiter.wait(() => exits^ == true);
       // TODO:
       // waitForCollection(~name="proc", proc);
