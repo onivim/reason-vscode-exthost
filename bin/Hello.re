@@ -81,10 +81,11 @@ let onExit = (_, ~exit_status as _: int64, ~term_signal as _: int) => ();
 spawnNode(
   ~onExit,
   ~args=[
-    Rench.Path.join(
-      Sys.getcwd(),
-      "node/node_modules/@onivim/vscode-exthost/out/bootstrap-fork.js",
-    ),
+    "/Users/bryphe/vscode-exthost/_package/out/bootstrap-fork.js",
+//    Rench.Path.join(
+//      Sys.getcwd(),
+//      "node/node_modules/@onivim/vscode-exthost/out/bootstrap-fork.js",
+//    ),
   ],
 );
 

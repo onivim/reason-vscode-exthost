@@ -8,6 +8,6 @@
   },
   "author": "",
   "dependencies": {
-    "@onivim/vscode-exthost": "^1.45.2"
+    "@onivim/vscode-exthost": "^1.45.3"
   }
 }
