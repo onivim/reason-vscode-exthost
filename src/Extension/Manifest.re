@@ -108,7 +108,7 @@ let remapPaths = (rootPath: string, manifest: t) => {
   main: Option.map(Path.join(rootPath), manifest.main),
   icon: Option.map(Path.join(rootPath), manifest.icon),
   //contributes:
-    //ExtensionContributions.remapPaths(rootPath, manifest.contributes),
+  //ExtensionContributions.remapPaths(rootPath, manifest.contributes),
 };
 
 let updateName = (nameSetter, manifest: t) => {
@@ -122,4 +122,3 @@ let localize = (loc: LocalizationDictionary.t, manifest: t) => {
     Option.map(LocalizedToken.localize(loc), manifest.displayName),
   //contributes: ExtensionContributions.localize(loc, manifest.contributes),
 };
-

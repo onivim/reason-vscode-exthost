@@ -37,54 +37,56 @@ let _getLocalizations = path =>
   } else {
     LocalizationDictionary.initial;
   };
-  
-  let loadManifest = (~prefix=None, ~category, pkg) => {
-    let json = Yojson.Safe.from_file(pkg);
-    let directory = Filename.dirname(pkg);
-    let nlsPath = Path.join(directory, "package.nls.json");
 
-    let localize = {
-      let dict = _getLocalizations(nlsPath);
+let load = (~prefix=None, ~category, packageFile) => {
+  let json = Yojson.Safe.from_file(packageFile);
+  let directory = Filename.dirname(packageFile);
+  let nlsPath = Path.join(directory, "package.nls.json");
 
-      Log.infof(m => {
-        let count = LocalizationDictionary.count(dict);
-        m("Loaded %d localizations from %s", count, nlsPath);
-      });
+  let localize = {
+    let dict = _getLocalizations(nlsPath);
 
-      Manifest.localize(dict);
-    };
+    Log.infof(m => {
+      let count = LocalizationDictionary.count(dict);
+      m("Loaded %d localizations from %s", count, nlsPath);
+    });
 
-    switch (Json.Decode.decode_value(Manifest.decode, json)) {
-    | Ok(parsedManifest) =>
-      let manifest =
-        parsedManifest
-        |> remapManifest(directory)
-        |> Manifest.updateName(name =>
-             prefix
-             |> Option.map(prefix => prefix ++ "." ++ name)
-             |> Option.value(~default=name)
-           )
-        |> localize;
-
-      Some({category, manifest, path: directory});
-
-    | Error(err) =>
-      Log.errorf(m =>
-        m("Failed to parse %s:\n\t%s", pkg, Json.Decode.string_of_error(err))
-      );
-      None;
-    };
+    Manifest.localize(dict);
   };
 
-let scan = (~prefix=None, ~category, directory: string) => {
+  switch (Json.Decode.decode_value(Manifest.decode, json)) {
+  | Ok(parsedManifest) =>
+    let manifest =
+      parsedManifest
+      |> remapManifest(directory)
+      |> Manifest.updateName(name =>
+           prefix
+           |> Option.map(prefix => prefix ++ "." ++ name)
+           |> Option.value(~default=name)
+         )
+      |> localize;
 
+    Some({category, manifest, path: directory});
+
+  | Error(err) =>
+    Log.errorf(m =>
+      m(
+        "Failed to parse %s:\n\t%s",
+        packageFile,
+        Json.Decode.string_of_error(err),
+      )
+    );
+    None;
+  };
+};
+
+let scan = (~prefix=None, ~category, directory: string) => {
   Sys.readdir(directory)
   |> Array.to_list
   |> List.map(Path.join(directory))
   |> List.filter(Sys.is_directory)
   |> List.map(dir => Path.join(dir, "package.json"))
   |> List.filter(Sys.file_exists)
-  |> List.map(loadManifest(~category, ~prefix?))
+  |> List.map(load(~category, ~prefix))
   |> List.filter_map(Fun.id);
 };
-

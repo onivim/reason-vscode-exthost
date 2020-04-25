@@ -34,4 +34,3 @@ let decode = Json.Decode.(string |> map(parse));
 let to_string = ({raw, localized, _}: t) => {
   Option.value(~default=raw, localized);
 };
-

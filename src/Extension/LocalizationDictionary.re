@@ -32,4 +32,3 @@ let of_yojson = json => {
 let get = StringMap.find_opt;
 
 let count = v => StringMap.bindings(v) |> List.length;
-
