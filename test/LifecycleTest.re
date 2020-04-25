@@ -124,11 +124,11 @@ describe("LifecycleTest", ({test, _}) => {
     |> Test.waitForReady
     |> Test.terminate
     |> Test.waitForProcessClosed
-  })
+  });
   test("close - extensions", ({expect}) => {
     Test.startWithExtensions(["oni-always-activate"])
     |> Test.waitForReady
     |> Test.terminate
     |> Test.waitForProcessClosed
-  })
+  });
 });
