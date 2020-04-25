@@ -3,9 +3,11 @@ open TestFramework;
 open Exthost;
 open TestLib;
 
-module InitData = Types.InitData;
+module InitData = Extension.InitData;
 module Uri = Types.Uri;
 module Test = {
+  open Extension;
+
   type t = {
     client: Client.t,
     extensionProcess: Luv.Process.t,
@@ -21,30 +23,26 @@ module Test = {
     let messages = ref([]);
 
     let wrappedHandler = msg => {
+      Msg.show(msg) |> prerr_endline;
       messages := [msg, ...messages^];
       handler(msg);
     };
 
     Timber.App.enable();
     Timber.App.setLevel(Timber.Level.trace);
+
+    let rootPath =
+      Rench.Path.join(Sys.getcwd(), "test_collateral/extensions");
+
     let extensions =
-      InitData.Extension.[
-        {
-          identifier: "oni-dev-extension",
-          extensionLocation:
-            Uri.fromPath(
-              "/Users/bryphe/reason-vscode-exthost/test_collateral/extensions/oni-activation-events-tests",
-            ),
-          version: "9.9.9",
-          name: "oni-dev-extension",
-          main: Some("./extension.js"),
-          engines: "vscode",
-          activationEvents: ["*"],
-          extensionDependencies: [],
-          extensionKind: "ui",
-          enableProposedApi: true,
-        },
-      ];
+      extensions
+      |> List.map(Rench.Path.join(rootPath))
+      |> List.map(p => Rench.Path.join(p, "package.json"))
+      |> List.map(Scanner.load(~prefix=None, ~category=Scanner.Bundled))
+      |> List.filter_map(v => v)
+      |> List.map(InitData.Extension.ofScanner);
+
+    extensions |> List.iter(m => m |> InitData.Extension.show |> prerr_endline);
 
     let logsLocation = Filename.temp_file("test", "log") |> Uri.fromPath;
     let logFile = Filename.temp_dir_name |> Uri.fromPath;
@@ -121,8 +119,14 @@ module Test = {
 };
 
 describe("LifecycleTest", ({test, _}) => {
-  test("close", ({expect}) => {
+  test("close - no extensions", ({expect}) => {
     Test.startWithExtensions([])
+    |> Test.waitForReady
+    |> Test.terminate
+    |> Test.waitForProcessClosed
+  })
+  test("close - extensions", ({expect}) => {
+    Test.startWithExtensions(["oni-always-activate"])
     |> Test.waitForReady
     |> Test.terminate
     |> Test.waitForProcessClosed

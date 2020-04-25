@@ -192,9 +192,7 @@ let handle = (rpcId, method, args) => {
             handler(method, args) |> Result.map(mapper);
           }
         | _ => {
-            let ret: result(Msg.t, string) =
-              Error("ExtHost handler was incorrectly registered for rpcId");
-            ret;
+            Error("ExtHost handler was incorrectly registered for rpcId");
           },
       )
   );

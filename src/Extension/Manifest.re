@@ -3,6 +3,8 @@
  *
  * Module to describing metadata about an extension
  */
+open Rench;
+
 open Types;
 
 [@deriving show]
@@ -105,7 +107,7 @@ let getDisplayName = (manifest: t) => {
 
 let remapPaths = (rootPath: string, manifest: t) => {
   ...manifest,
-  main: Option.map(Path.join(rootPath), manifest.main),
+  //main: Option.map(Path.join(rootPath), manifest.main),
   icon: Option.map(Path.join(rootPath), manifest.icon),
   //contributes:
   //ExtensionContributions.remapPaths(rootPath, manifest.contributes),

@@ -13,7 +13,10 @@ type msg =
       activateResolvedTime: int,
     })
   //activationEvent: option(string),
-  | OnExtensionActivationFailed({extensionId: string})
+  | OnExtensionActivationError({
+      extensionId: string,
+      errorMessage: string,
+    })
   | OnExtensionRuntimeError({extensionId: string});
 // TODO: Error?
 
@@ -31,7 +34,13 @@ let handle = (method, args: Yojson.Safe.t) => {
       | _ => None
       };
 
+    failwith("OHNO");
     Ok(ActivateExtension({extensionId, activationEvent}));
+  | (
+      "$onExtensionActivationError",
+      `List([`String(extensionId), `String(errorMessage)]),
+    ) =>
+    Ok(OnExtensionActivationError({extensionId, errorMessage}))
   | ("$onWillActivateExtension", `List([`String(extensionId)])) =>
     Ok(OnWillActivateExtension({extensionId: extensionId}))
   | (
@@ -52,8 +61,6 @@ let handle = (method, args: Yojson.Safe.t) => {
         activateResolvedTime,
       }),
     )
-  | ("$onExtensionActivatedFailed", `List([`String(extensionId), ..._args])) =>
-    Ok(OnExtensionActivationFailed({extensionId: extensionId}))
   | ("$onExtensionRuntimeError", `List([`String(extensionId), ..._args])) =>
     Ok(OnExtensionRuntimeError({extensionId: extensionId}))
   | _ => Error("Unhandled method: " ++ method)

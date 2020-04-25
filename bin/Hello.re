@@ -1,10 +1,10 @@
 print_endline("Hello, world!");
 
+open Rench;
 open Exthost;
 
 module InitData = Extension.InitData;
 module Uri = Types.Uri;
-module Path = Types.Path;
 
 Printexc.record_backtrace(true);
 
@@ -16,10 +16,9 @@ let extensions =
   |> Extension.Scanner.scan(~prefix=None, ~category=Bundled)
   |> List.map(InitData.Extension.ofScanner);
 
-extensions
-|> List.iter(m => m |> InitData.Extension.show |> prerr_endline);
+extensions |> List.iter(m => m |> InitData.Extension.show |> prerr_endline);
 
-prerr_endline ("LENGTH: " ++ string_of_int(List.length(extensions)));
+prerr_endline("LENGTH: " ++ string_of_int(List.length(extensions)));
 let initData =
   InitData.create(
     ~version="9.9.9",

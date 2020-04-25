@@ -35,7 +35,10 @@ module ExtensionService: {
         activateResolvedTime: int,
       })
     //activationEvent: option(string),
-    | OnExtensionActivationFailed({extensionId: string})
+    | OnExtensionActivationError({
+        extensionId: string,
+        errorMessage: string,
+      })
     | OnExtensionRuntimeError({extensionId: string});
   // TODO: Error?
 };

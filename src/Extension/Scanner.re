@@ -4,6 +4,7 @@
  * Module to get and discover extension manifests
  */
 
+open Rench;
 open Types;
 
 //module OptionEx = Utility.OptionEx;
@@ -23,12 +24,14 @@ type t = {
 };
 
 let remapManifest = (directory: string, manifest: Manifest.t) => {
-  let manifest = {
-    ...manifest,
-    main: Option.map(m => Path.join(directory, m), manifest.main),
-  };
-
-  Manifest.remapPaths(directory, manifest);
+  /*let manifest = {
+      ...manifest,
+      main: Option.map(m => Path.join(directory, m), manifest.main),
+    };*/
+  Manifest.remapPaths(
+    directory,
+    manifest,
+  );
 };
 
 let _getLocalizations = path =>

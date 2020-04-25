@@ -15,20 +15,21 @@ module Extension = {
     enableProposedApi: bool,
   };
 
-  let ofScanner: Scanner.t => t = ({manifest, path, _}: Scanner.t) => {
-    // TODO: Is identifier right?
-    identifier: manifest.name,
-    extensionLocation: path |> Uri.fromPath,
-    name: manifest.name,
-    main: manifest.main,
-    version: manifest.version,
-    engines: manifest.engines,
-    activationEvents: manifest.activationEvents,
-    extensionDependencies: manifest.extensionDependencies,
-    // TODO: Convert correctly
-    extensionKind: "ui",
-    enableProposedApi: manifest.enableProposedApi,
-  };
+  let ofScanner: Scanner.t => t =
+    ({manifest, path, _}: Scanner.t) => {
+      // TODO: Is identifier right?
+      identifier: manifest.name,
+      extensionLocation: path |> Uri.fromPath,
+      name: manifest.name,
+      main: manifest.main,
+      version: manifest.version,
+      engines: manifest.engines,
+      activationEvents: manifest.activationEvents,
+      extensionDependencies: manifest.extensionDependencies,
+      // TODO: Convert correctly
+      extensionKind: "ui",
+      enableProposedApi: manifest.enableProposedApi,
+    };
 };
 
 module Environment = {

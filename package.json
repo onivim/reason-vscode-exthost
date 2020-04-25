@@ -21,6 +21,7 @@
     "@opam/ppx_deriving": "*",
     "@opam/re": "*",
     "refmterr": "*",
+    "rench": "github:revery-ui/rench#a976fe5",
     "ocaml": "^4.7.0",
     "@opam/luv": "*",
     "@glennsl/timber": "^1.0.0"
