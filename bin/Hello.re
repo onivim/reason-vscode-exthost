@@ -9,6 +9,8 @@ Printexc.record_backtrace(true);
 Timber.App.enable();
 Timber.App.setLevel(Timber.Level.trace);
 
+let nodePath = Utility.getNodePath();
+
 let extensions =
   Path.join(Sys.getcwd(), "test_collateral/extensions")
   |> Extension.Scanner.scan(~prefix=None, ~category=Bundled)
@@ -71,8 +73,8 @@ let spawnNode = (~onExit, ~args) => {
         (),
       ),
     ],
-    "/usr/local/bin/node",
-    ["/usr/local/bin/node", ...args],
+    nodePath,
+    [nodePath, ...args],
   )
   |> Result.get_ok;
 };
