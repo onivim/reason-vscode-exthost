@@ -130,7 +130,7 @@ module Message = {
     type t =
       | Initialize({
           requestId: int,
-          initData: Types.InitData.t,
+          initData: Extension.InitData.t,
         })
       | RequestJSONArgs({
           requestId: int,
@@ -276,7 +276,7 @@ module Message = {
     | Initialize({requestId, initData}) =>
       let bytes =
         initData
-        |> Types.InitData.to_yojson
+        |> Extension.InitData.to_yojson
         |> Yojson.Safe.to_string
         |> Bytes.of_string;
 

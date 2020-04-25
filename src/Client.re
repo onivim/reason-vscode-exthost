@@ -8,7 +8,7 @@ let start =
     (
       ~initialConfiguration=Types.Configuration.empty,
       ~namedPipe,
-      ~initData: Types.InitData.t,
+      ~initData: Extension.InitData.t,
       ~handler: Msg.t => option(reply),
       ~onError: string => unit,
       (),

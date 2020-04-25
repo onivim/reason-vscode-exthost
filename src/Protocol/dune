@@ -1,5 +1,5 @@
 (library
     (name Protocol)
     (public_name vscode-exthost.protocol)
-    (libraries luv vscode-exthost.transport vscode-exthost.types yojson decoders-yojson)
+    (libraries luv vscode-exthost.extension vscode-exthost.transport vscode-exthost.types yojson decoders-yojson)
     (preprocess (pps ppx_deriving.show ppx_deriving_yojson)))

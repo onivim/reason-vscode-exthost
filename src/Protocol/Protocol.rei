@@ -47,7 +47,7 @@ module Message: {
     type t =
       | Initialize({
           requestId: int,
-          initData: Types.InitData.t,
+          initData: Extension.InitData.t,
         })
       | RequestJSONArgs({
           requestId: int,

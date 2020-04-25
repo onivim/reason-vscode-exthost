@@ -88,7 +88,7 @@ module Client: {
     (
       ~initialConfiguration: Types.Configuration.t=?,
       ~namedPipe: NamedPipe.t,
-      ~initData: Types.InitData.t,
+      ~initData: Extension.InitData.t,
       ~handler: Msg.t => option(reply),
       ~onError: string => unit,
       unit

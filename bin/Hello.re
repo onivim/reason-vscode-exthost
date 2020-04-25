@@ -2,7 +2,7 @@ print_endline("Hello, world!");
 
 open Exthost;
 
-module InitData = Types.InitData;
+module InitData = Extension.InitData;
 module Uri = Types.Uri;
 
 Printexc.record_backtrace(true);

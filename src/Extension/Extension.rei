@@ -53,3 +53,5 @@ module Scanner: {
   let scan:
     (~prefix: option(string)=?, ~category: category, string) => list(t);
 };
+
+module InitData = InitData;
