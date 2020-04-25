@@ -64,7 +64,8 @@ module Message: {
       | ReplyError({
           requestId: int,
           error: string,
-        });
+        })
+      | Terminate;
   };
 
   let ofPacket: Transport.Packet.t => result(Incoming.t, string);

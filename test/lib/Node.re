@@ -1,8 +1,10 @@
-let spawn = (~onExit, ~args) => {
+let spawn = (~additionalEnv=[], ~onExit, args) => {
+  let env = Luv.Env.environ() |> Result.get_ok;
   let nodeFullPath = Exthost.Utility.getNodePath();
-  print_endline ("Using node path: " ++ nodeFullPath);
+  print_endline("Using node path: " ++ nodeFullPath);
   Luv.Process.spawn(
     ~on_exit=onExit,
+    ~environment=env @ additionalEnv,
     ~redirect=[
       Luv.Process.inherit_fd(
         ~fd=Luv.Process.stdin,
@@ -25,4 +27,3 @@ let spawn = (~onExit, ~args) => {
   )
   |> Result.get_ok;
 };
-

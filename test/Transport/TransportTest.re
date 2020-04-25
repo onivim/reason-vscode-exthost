@@ -42,7 +42,7 @@ module Test = {
     let exits = ref(false);
     let onExit = (_proc, ~exit_status as _, ~term_signal as _) =>
       exits := true;
-    let _: Luv.Process.t = Node.spawn(~onExit, ~args=[scriptPath, namedPipe]);
+    let _: Luv.Process.t = Node.spawn(~onExit, [scriptPath, namedPipe]);
     let transport = Transport.start(~namedPipe, ~dispatch) |> Result.get_ok;
 
     {exits, messages, transport};
@@ -79,7 +79,7 @@ describe("Transport", ({describe, _}) => {
       let exits = ref(false);
       let onExit = (_proc, ~exit_status as _, ~term_signal as _) =>
         exits := true;
-      let _ = Node.spawn(~onExit, ~args=["--version"]);
+      let _ = Node.spawn(~onExit, ["--version"]);
 
       Waiter.wait(() => exits^ == true);
     });
@@ -88,7 +88,7 @@ describe("Transport", ({describe, _}) => {
       let exits = ref(false);
       let onExit = (_proc, ~exit_status as _, ~term_signal as _) =>
         exits := true;
-      let _proc: Luv.Process.t = Node.spawn(~onExit, ~args=["--version"]);
+      let _proc: Luv.Process.t = Node.spawn(~onExit, ["--version"]);
       Waiter.wait(() => exits^ == true);
       // TODO:
       // waitForCollection(~name="proc", proc);

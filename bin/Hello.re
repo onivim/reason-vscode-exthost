@@ -1,5 +1,5 @@
 print_endline("Hello, world!");
-        
+
 open Exthost;
 
 module InitData = Types.InitData;

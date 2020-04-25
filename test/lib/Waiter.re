@@ -1,8 +1,8 @@
-let wait = (~name="TODO", condition) => {
+let wait = (~timeout=1.0, ~name="TODO", condition) => {
   let start = Unix.gettimeofday();
   let delta = () => Unix.gettimeofday() -. start;
 
-  while (!condition() && delta() < 1.0) {
+  while (!condition() && delta() < timeout) {
     let _: bool = Luv.Loop.run(~mode=`NOWAIT, ());
     Unix.sleepf(0.1);
   };
@@ -23,4 +23,3 @@ let waitForCollection = (~name, item) => {
   Gc.finalise_last(() => collected := true, item);
   wait(~name="Waiting for GC to collect: " ++ name, checkCollected);
 };
-

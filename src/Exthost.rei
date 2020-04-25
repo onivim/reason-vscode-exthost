@@ -96,6 +96,8 @@ module Client: {
     result(t, string);
 
   let close: t => unit;
+
+  let terminate: t => unit;
 };
 
 module Protocol = Protocol;

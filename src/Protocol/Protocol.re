@@ -147,7 +147,8 @@ module Message = {
       | ReplyError({
           requestId: int,
           error: string,
-        });
+        })
+      | Terminate;
   };
 
   // Needs to be in sync with rpcProtocol.t
@@ -240,7 +241,8 @@ module Message = {
       | RequestJSONArgs({requestId, _}) => requestId
       | ReplyOKEmpty({requestId}) => requestId
       | ReplyOKJSON({requestId, _}) => requestId
-      | ReplyError({requestId, _}) => requestId;
+      | ReplyError({requestId, _}) => requestId
+      | Terminate => Int.max_int;
 
     let id = getRequestId(msg);
     let requestId = id |> Int32.of_int;
@@ -268,6 +270,9 @@ module Message = {
     };
 
     switch (msg) {
+    | Terminate =>
+      let bytes = Bytes.make(1, Char.chr(3));
+      Transport.Packet.create(~bytes, ~packetType=Packet.Regular, ~id);
     | Initialize({requestId, initData}) =>
       let bytes =
         initData

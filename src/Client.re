@@ -81,4 +81,6 @@ let start =
   protocol;
 };
 
+let terminate = Protocol.send(~message=Terminate);
+
 let close = Protocol.close;
