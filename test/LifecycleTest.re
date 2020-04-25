@@ -45,7 +45,7 @@ module Test = {
     extensions |> List.iter(m => m |> InitData.Extension.show |> prerr_endline);
 
     let logsLocation = Filename.temp_file("test", "log") |> Uri.fromPath;
-    let logFile = Filename.temp_dir_name |> Uri.fromPath;
+    let logFile = Filename.get_temp_dir_name() |> Uri.fromPath;
 
     let parentPid = Luv.Pid.getpid();
 
