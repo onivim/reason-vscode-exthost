@@ -3,7 +3,7 @@ open TestFramework;
 open Exthost;
 
 describe("ActivationEventsTest", ({test, _}) => {
-  describe("* (wildcard activation)", ({test, _}) => {
+  describe("* (wildcard activation)", _ => {
     test("close - extensions", _ => {
       let waitForActivation =
         fun
