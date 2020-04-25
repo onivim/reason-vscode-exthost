@@ -1,5 +1,3 @@
-print_endline("Hello, world!");
-
 open Rench;
 open Exthost;
 
@@ -18,11 +16,12 @@ let extensions =
 
 extensions |> List.iter(m => m |> InitData.Extension.show |> prerr_endline);
 
-prerr_endline("LENGTH: " ++ string_of_int(List.length(extensions)));
+let parentPid = Luv.Pid.getpid();
+
 let initData =
   InitData.create(
     ~version="9.9.9",
-    ~parentPid=1,
+    ~parentPid,
     ~logsLocation=Uri.fromPath("/tmp/loggy"),
     ~logFile=Uri.fromPath("/tmp/log-file"),
     extensions,
@@ -36,7 +35,6 @@ let handler = msg => {
 let onError = prerr_endline;
 
 let pipe = NamedPipe.create("hello");
-prerr_endline("PIPE: " ++ (pipe |> NamedPipe.toString));
 
 let pipeStr = NamedPipe.toString(pipe);
 
@@ -53,25 +51,26 @@ let spawnNode = (~onExit, ~args) => {
         "vs/workbench/services/extensions/node/extensionHostProcess",
       ),
       ("VSCODE_IPC_HOOK_EXTHOST", pipeStr),
+      ("VSCODE_PARENT_PID", parentPid |> string_of_int),
       ...env,
     ],
-    /*~redirect=[
-        Luv.Process.inherit_fd(
-          ~fd=Luv.Process.stdin,
-          ~from_parent_fd=Luv.Process.stdin,
-          (),
-        ),
-        Luv.Process.inherit_fd(
-          ~fd=Luv.Process.stdout,
-          ~from_parent_fd=Luv.Process.stderr,
-          (),
-        ),
-        Luv.Process.inherit_fd(
-          ~fd=Luv.Process.stderr,
-          ~from_parent_fd=Luv.Process.stderr,
-          (),
-        ),
-      ],*/
+    ~redirect=[
+      Luv.Process.inherit_fd(
+        ~fd=Luv.Process.stdin,
+        ~from_parent_fd=Luv.Process.stdin,
+        (),
+      ),
+      Luv.Process.inherit_fd(
+        ~fd=Luv.Process.stdout,
+        ~from_parent_fd=Luv.Process.stderr,
+        (),
+      ),
+      Luv.Process.inherit_fd(
+        ~fd=Luv.Process.stderr,
+        ~from_parent_fd=Luv.Process.stderr,
+        (),
+      ),
+    ],
     "/usr/local/bin/node",
     ["/usr/local/bin/node", ...args],
   )
@@ -81,7 +80,12 @@ let onExit = (_, ~exit_status as _: int64, ~term_signal as _: int) => ();
 
 spawnNode(
   ~onExit,
-  ~args=["/Users/bryphe/vscode-exthost-v2/out/bootstrap-fork.js"],
+  ~args=[
+    Rench.Path.join(
+      Sys.getcwd(),
+      "node/node_modules/@onivim/vscode-exthost/out/bootstrap-fork.js",
+    ),
+  ],
 );
 
 Luv.Loop.run() |> ignore;

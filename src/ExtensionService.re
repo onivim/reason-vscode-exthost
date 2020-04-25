@@ -34,7 +34,6 @@ let handle = (method, args: Yojson.Safe.t) => {
       | _ => None
       };
 
-    failwith("OHNO");
     Ok(ActivateExtension({extensionId, activationEvent}));
   | (
       "$onExtensionActivationError",

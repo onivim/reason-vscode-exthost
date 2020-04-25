@@ -29,12 +29,12 @@ Bytes.blit(packet1Bytes, 0, doublePackets, packet1Length, packet1Length);
 let doublePacketBuffer = doublePackets |> Luv.Buffer.from_bytes;
 
 describe("Transport.Packet.parser", ({test, _}) => {
-  test("simple, full message packet", ({expect}) => {
+  test("simple, full message packet", ({expect, _}) => {
     let (_parser, messages) = Parser.initial |> Parser.parse(packet1Buffer);
 
     expect.bool(Packet.equal(messages |> List.hd, packet1)).toBe(true);
   });
-  test("split packet", ({expect}) => {
+  test("split packet", ({expect, _}) => {
     let (parser, messages) = Parser.initial |> Parser.parse(packet1Split1);
 
     expect.equal(messages, []);
@@ -43,7 +43,7 @@ describe("Transport.Packet.parser", ({test, _}) => {
 
     expect.bool(Packet.equal(messages |> List.hd, packet1)).toBe(true);
   });
-  test("double packets", ({expect}) => {
+  test("double packets", ({expect, _}) => {
     let (_parser, messages) =
       Parser.initial |> Parser.parse(doublePacketBuffer);
 

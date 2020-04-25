@@ -6,6 +6,9 @@ steps:
       versionSpec: '8.9'
   - script: npm install -g esy@0.6.2
     displayName: 'npm install -g esy@0.6.2'
+  - script: npm install
+    workingDirectory: node
+    displayName: "npm install (node dependencies)"
   - script: esy install
     displayName: 'esy install'
   - script: esy build

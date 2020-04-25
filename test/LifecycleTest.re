@@ -47,10 +47,12 @@ module Test = {
     let logsLocation = Filename.temp_file("test", "log") |> Uri.fromPath;
     let logFile = Filename.temp_dir_name |> Uri.fromPath;
 
+    let parentPid = Luv.Pid.getpid();
+
     let initData =
       InitData.create(
         ~version="9.9.9",
-        ~parentPid=1,
+        ~parentPid,
         ~logsLocation,
         ~logFile,
         extensions,
@@ -69,10 +71,15 @@ module Test = {
 
     let processHasExited = ref(false);
 
-    let parentPid = Luv.Pid.getpid();
     let onExit = (_, ~exit_status as _: int64, ~term_signal as _: int) => {
       processHasExited := true;
     };
+
+    let extHostScriptPath =
+      Rench.Path.join(
+        Sys.getcwd(),
+        "node/node_modules/@onivim/vscode-exthost/out/bootstrap-fork.js",
+      );
 
     let extensionProcess =
       Node.spawn(
@@ -85,7 +92,7 @@ module Test = {
           ("VSCODE_PARENT_PID", parentPid |> string_of_int),
         ],
         ~onExit,
-        ["/Users/bryphe/vscode-exthost-v2/out/bootstrap-fork.js"],
+        [extHostScriptPath],
       );
     {client, extensionProcess, processHasExited, messages};
   };
@@ -119,13 +126,13 @@ module Test = {
 };
 
 describe("LifecycleTest", ({test, _}) => {
-  test("close - no extensions", ({expect}) => {
+  test("close - no extensions", _ => {
     Test.startWithExtensions([])
     |> Test.waitForReady
     |> Test.terminate
     |> Test.waitForProcessClosed
   });
-  test("close - extensions", ({expect}) => {
+  test("close - extensions", _ => {
     Test.startWithExtensions(["oni-always-activate"])
     |> Test.waitForReady
     |> Test.terminate
