@@ -15,7 +15,7 @@ module Extension = {
     enableProposedApi: bool,
   };
 
-  let ofScanner = ({manifest, path, _}: Scanner.t) => {
+  let ofScanner: Scanner.t => t = ({manifest, path, _}: Scanner.t) => {
     // TODO: Is identifier right?
     identifier: manifest.name,
     extensionLocation: path |> Uri.fromPath,

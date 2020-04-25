@@ -4,6 +4,7 @@ open Exthost;
 
 module InitData = Extension.InitData;
 module Uri = Types.Uri;
+module Path = Types.Path;
 
 Printexc.record_backtrace(true);
 
@@ -11,24 +12,14 @@ Timber.App.enable();
 Timber.App.setLevel(Timber.Level.trace);
 
 let extensions =
-  InitData.Extension.[
-    {
-      identifier: "oni-dev-extension",
-      extensionLocation:
-        Uri.fromPath(
-          "/Users/bryphe/reason-vscode-exthost/test_collateral/extensions/oni-activation-events-tests",
-        ),
-      version: "9.9.9",
-      name: "oni-dev-extension",
-      main: Some("./extension.js"),
-      engines: "vscode",
-      activationEvents: ["*"],
-      extensionDependencies: [],
-      extensionKind: "ui",
-      enableProposedApi: true,
-    },
-  ];
+  Path.join(Sys.getcwd(), "test_collateral/extensions")
+  |> Extension.Scanner.scan(~prefix=None, ~category=Bundled)
+  |> List.map(InitData.Extension.ofScanner);
 
+extensions
+|> List.iter(m => m |> InitData.Extension.show |> prerr_endline);
+
+prerr_endline ("LENGTH: " ++ string_of_int(List.length(extensions)));
 let initData =
   InitData.create(
     ~version="9.9.9",

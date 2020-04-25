@@ -42,7 +42,7 @@ module Scanner: {
     | Development;
 
   type t =
-    pri {
+    {
       category,
       manifest: Manifest.t,
       path: string,
@@ -54,4 +54,83 @@ module Scanner: {
     (~prefix: option(string)=?, ~category: category, string) => list(t);
 };
 
-module InitData = InitData;
+module InitData: {
+module Extension: {
+  [@deriving (show, yojson({strict: false}))]
+  type t = {
+    identifier: string,
+    extensionLocation: Types.Uri.t,
+    name: string,
+    main: option(string),
+    version: string,
+    engines: string,
+    activationEvents: list(string),
+    extensionDependencies: list(string),
+    extensionKind: string,
+    enableProposedApi: bool,
+  };
+
+  let ofScanner: Scanner.t => t;
+};
+
+module Environment: {
+  [@deriving (show, yojson({strict: false}))]
+  type t = {
+    isExtensionDevelopmentDebug: bool,
+    appName: string,
+    // TODO
+    /*
+     appRoot: option(Types.Uri.t),
+     appLanguage: string,
+     appUriScheme: string,
+     appSettingsHome: option(Uri.t),
+     globalStorageHome: Uri.t,
+     userHome: Uri.t,
+     webviewResourceRoot: string,
+     webviewCspSource: string,
+     useHostProxy: boolean,
+     */
+  };
+
+  let default: t;
+};
+
+module Remote: {
+  [@deriving (show, yojson({strict: false}))]
+  type t = {
+    isRemote: bool,
+    // TODO:
+    // authority: string,
+  };
+
+  let default: t;
+};
+
+[@deriving (show, yojson({strict: false}))]
+type t = {
+  version: string,
+  parentPid: int,
+  extensions: list(Extension.t),
+  resolvedExtensions: list(unit),
+  hostExtensions: list(unit),
+  environment: Environment.t,
+  logLevel: int,
+  logsLocation: Types.Uri.t,
+  logFile: Types.Uri.t,
+  autoStart: bool,
+  remote: Remote.t,
+};
+
+let create:
+    (
+      ~version: string,
+      ~parentPid: int,
+      ~logsLocation: Types.Uri.t,
+      ~logFile: Types.Uri.t,
+      ~environment:Environment.t=?,
+      ~logLevel:int=?,
+      ~autoStart:bool=?,
+      ~remote:Remote.t=?,
+      list(Extension.t),
+    ) => t;
+};
