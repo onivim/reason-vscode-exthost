@@ -66,7 +66,7 @@ let startWithExtensions =
       ~onError,
       (),
     )
-    |> ResultEx.tap_error(msg => Log.error(msg))
+    |> ResultEx.tap_error(msg => prerr_endline(msg))
     |> Result.get_ok;
 
   let processHasExited = ref(false);

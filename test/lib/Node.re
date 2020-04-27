@@ -27,6 +27,6 @@ let spawn = (~additionalEnv=[], ~onExit, args) => {
     nodeFullPath,
     [nodeFullPath, ...args],
   )
-  |> ResultEx.tap_error(msg => Log.error(Luv.Error.strerror(msg)))
+  |> ResultEx.tap_error(msg => prerr_endline(Luv.Error.strerror(msg)))
   |> Result.get_ok;
 };
