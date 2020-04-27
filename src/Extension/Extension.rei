@@ -35,14 +35,13 @@ module LocalizedToken: {
 };
 
 module Contributions: {
-
   [@deriving show]
   module Command: {
     type t = {
       command: string,
       title: LocalizedToken.t,
       category: option(string),
-    }
+    };
   };
 
   module Configuration: {
@@ -59,7 +58,7 @@ module Contributions: {
       extensions: list(string),
       aliases: list(string),
       configuration: option(string),
-    }
+    };
   };
 
   module Grammar: {
@@ -90,6 +89,7 @@ module Contributions: {
     };
   };
 
+  [@deriving show]
   type t = {
     commands: list(Command.t),
     languages: list(Language.t),
@@ -97,7 +97,7 @@ module Contributions: {
     themes: list(Theme.t),
     iconThemes: list(IconTheme.t),
     configuration: Configuration.t,
-  }
+  };
 };
 
 module Manifest: {
@@ -128,7 +128,6 @@ module Manifest: {
     | Workspace;
 
   let decode: Types.Json.decoder(t);
-  
 };
 
 module Scanner: {

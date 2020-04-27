@@ -24,7 +24,6 @@ type t = {
   extensionDependencies: list(string),
   extensionPack: list(string),
   extensionKind: kind,
-  // TODO: Bring back
   contributes: Contributions.t,
   enableProposedApi: bool,
 }
@@ -78,9 +77,12 @@ module Decode = {
           extensionPack:
             field.withDefault("extensionPack", [], list(string)),
           extensionKind: field.withDefault("extensionKind", Ui, kind),
-          // TODO: Bring back
           contributes:
-           field.required("contributes", Contributions.decode),
+            field.withDefault(
+              "contributes",
+              Contributions.default,
+              Contributions.decode,
+            ),
           enableProposedApi:
             field.withDefault("enableProposedApi", false, bool),
         }
@@ -109,8 +111,7 @@ let remapPaths = (rootPath: string, manifest: t) => {
   ...manifest,
   //main: Option.map(Path.join(rootPath), manifest.main),
   icon: Option.map(Path.join(rootPath), manifest.icon),
-  contributes:
-  Contributions.remapPaths(rootPath, manifest.contributes),
+  contributes: Contributions.remapPaths(rootPath, manifest.contributes),
 };
 
 let updateName = (nameSetter, manifest: t) => {

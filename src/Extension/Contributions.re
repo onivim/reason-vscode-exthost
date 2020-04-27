@@ -213,6 +213,15 @@ type t = {
   configuration: Configuration.t,
 };
 
+let default = {
+  commands: [],
+  languages: [],
+  grammars: [],
+  themes: [],
+  iconThemes: [],
+  configuration: [],
+};
+
 let decode =
   Json.Decode.(
     obj(({field, _}) =>
