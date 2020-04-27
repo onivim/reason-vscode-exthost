@@ -19,6 +19,30 @@ module DebugService: {
     | RegisterDebugTypes(list(string));
 };
 
+module ExtensionService: {
+  [@deriving show]
+  type msg =
+    | ActivateExtension({
+        extensionId: string,
+        activationEvent: option(string),
+      })
+    | OnWillActivateExtension({extensionId: string})
+    | OnDidActivateExtension({
+        extensionId: string,
+        //startup: bool,
+        codeLoadingTime: int,
+        activateCallTime: int,
+        activateResolvedTime: int,
+      })
+    //activationEvent: option(string),
+    | OnExtensionActivationError({
+        extensionId: string,
+        errorMessage: string,
+      })
+    | OnExtensionRuntimeError({extensionId: string});
+  // TODO: Error?
+};
+
 module Telemetry: {
   [@deriving show]
   type msg =
@@ -39,6 +63,7 @@ module Msg: {
     | Ready
     | Commands(Commands.msg)
     | DebugService(DebugService.msg)
+    | ExtensionService(ExtensionService.msg)
     | Telemetry(Telemetry.msg)
     | Initialized
     | Disconnected
@@ -66,7 +91,7 @@ module Client: {
     (
       ~initialConfiguration: Types.Configuration.t=?,
       ~namedPipe: NamedPipe.t,
-      ~initData: Types.InitData.t,
+      ~initData: Extension.InitData.t,
       ~handler: Msg.t => option(reply),
       ~onError: string => unit,
       unit
@@ -74,7 +99,10 @@ module Client: {
     result(t, string);
 
   let close: t => unit;
+
+  let terminate: t => unit;
 };
 
 module Protocol = Protocol;
 module Transport = Transport;
+module Utility = Utility;

@@ -19,15 +19,17 @@
     "@esy-ocaml/reason": "^3.5.2",
     "@opam/ppx_deriving_yojson": "*",
     "@opam/ppx_deriving": "*",
+    "@opam/re": "*",
     "refmterr": "*",
+    "rench": "revery-ui/rench#a976fe5",
     "ocaml": "^4.7.0",
     "@opam/luv": "*",
     "@glennsl/timber": "^1.0.0"
   },
   "devDependencies": {
     "ocaml": "^4.8.0",
-    "@opam/ocaml-lsp-server": "github:ocaml/ocaml-lsp:ocaml-lsp-server.opam#04733ed",
-    "@reason-native/rely": "^2.2.0",
+    "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam#04733ed",
+    "@reason-native/rely": "^3.2.1",
      "reperf": "^1.5.0"
   }
 }

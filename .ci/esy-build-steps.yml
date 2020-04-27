@@ -3,9 +3,14 @@
 steps:
   - task: NodeTool@0
     inputs:
-      versionSpec: '8.9'
+      versionSpec: "12.13.0"
   - script: npm install -g esy@0.6.2
     displayName: 'npm install -g esy@0.6.2'
+  - script: yarn --version
+    displayName: "yarn --version"
+  - script: yarn install
+    workingDirectory: node
+    displayName: "yarn install (node dependencies)"
   - script: esy install
     displayName: 'esy install'
   - script: esy build

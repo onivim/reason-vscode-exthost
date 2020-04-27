@@ -3,3 +3,4 @@ Timber.App.enable();
 Timber.App.setLevel(Timber.Level.trace);
 ExtHostTest.TestFramework.cli();
 ExtHostTransportTest.TestFramework.cli();
+ExtHostExtensionTest.TestFramework.cli();

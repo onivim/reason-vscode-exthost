@@ -108,7 +108,11 @@ let handlers =
     mainNotImplemented("MainThreadUrls"),
     mainNotImplemented("MainThreadWorkspace"),
     mainNotImplemented("MainThreadFileSystem"),
-    mainNotImplemented("MainThreadExtensionService"),
+    main(
+      ~handler=ExtensionService.handle,
+      ~mapper=msg => Msg.ExtensionService(msg),
+      "MainThreadExtensionService",
+    ),
     mainNotImplemented("MainThreadSCM"),
     mainNotImplemented("MainThreadSearch"),
     mainNotImplemented("MainThreadTask"),
@@ -177,7 +181,7 @@ let handle = (rpcId, method, args) => {
   rpcId
   |> Hashtbl.find_opt(Internal.idToHandler)
   |> Option.to_result(
-       ~none="No handler registered fol: " ++ (rpcId |> string_of_int),
+       ~none="No handler registered for: " ++ (rpcId |> string_of_int),
      )
   |> (
     opt =>
@@ -188,9 +192,7 @@ let handle = (rpcId, method, args) => {
             handler(method, args) |> Result.map(mapper);
           }
         | _ => {
-            let ret: result(Msg.t, string) =
-              Error("ExtHost handler was incorrectly registered for rpcId");
-            ret;
+            Error("ExtHost handler was incorrectly registered for rpcId");
           },
       )
   );

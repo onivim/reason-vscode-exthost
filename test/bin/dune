@@ -6,4 +6,5 @@
         vscode-exthost
         vscode-exthost-test
         vscode-exthost-test.transport
+        vscode-exthost-test.extension
             ))

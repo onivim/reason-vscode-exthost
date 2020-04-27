@@ -1,0 +1,7 @@
+(library
+    (name ExtHostExtensionTest)
+    (public_name vscode-exthost-test.extension)
+    (flags (:standard (-w -39)))
+    (ocamlopt_flags -linkall -g)
+    (libraries rely.lib vscode-exthost vscode-exthost-test.lib)
+)

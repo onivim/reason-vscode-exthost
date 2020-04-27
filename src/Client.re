@@ -8,7 +8,7 @@ let start =
     (
       ~initialConfiguration=Types.Configuration.empty,
       ~namedPipe,
-      ~initData: Types.InitData.t,
+      ~initData: Extension.InitData.t,
       ~handler: Msg.t => option(reply),
       ~onError: string => unit,
       (),
@@ -66,9 +66,13 @@ let start =
         | Empty => onError("Unknown / Empty")
         }
       | Incoming.RequestJSONArgs({requestId, rpcId, method, args, _}) =>
-        Handlers.handle(rpcId, method, args)
-        |> Result.iter(msg => handler(msg) |> ignore);
-        send(Outgoing.ReplyOKEmpty({requestId: requestId}));
+        let req = Handlers.handle(rpcId, method, args);
+        switch (req) {
+        | Ok(msg) =>
+          handler(msg) |> ignore; // TODO: Hook up to reply!
+          send(Outgoing.ReplyOKEmpty({requestId: requestId}));
+        | Error(msg) => onError(msg)
+        };
       | _ => ()
       }
     );
@@ -80,5 +84,7 @@ let start =
 
   protocol;
 };
+
+let terminate = Protocol.send(~message=Terminate);
 
 let close = Protocol.close;
