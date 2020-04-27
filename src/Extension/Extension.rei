@@ -31,7 +31,7 @@ module LocalizedToken: {
 
     Otherwise, the raw token will be returned.
    */
-  let to_string: t => string;
+  let toString: t => string;
 };
 
 module Scanner: {

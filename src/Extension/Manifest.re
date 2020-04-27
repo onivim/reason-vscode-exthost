@@ -101,7 +101,7 @@ let decode = Decode.manifest;
 
 let getDisplayName = (manifest: t) => {
   manifest.displayName
-  |> Option.map(tok => LocalizedToken.to_string(tok))
+  |> Option.map(tok => LocalizedToken.toString(tok))
   |> Option.value(~default=manifest.name);
 };
 
