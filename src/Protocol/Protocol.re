@@ -235,15 +235,14 @@ module Message = {
 
     let packetId = id;
     let getRequestId =
-    fun
-    | Initialize({requestId, _}) => requestId
-    | RequestJSONArgs({requestId, _}) => requestId
-    | ReplyOKEmpty({requestId, _}) => requestId
-    | ReplyOKJSON({requestId, _}) => requestId
-    | ReplyError({requestId, _}) => requestId
-    | Terminate => Int.max_int;
+      fun
+      | Initialize({requestId, _}) => requestId
+      | RequestJSONArgs({requestId, _}) => requestId
+      | ReplyOKEmpty({requestId, _}) => requestId
+      | ReplyOKJSON({requestId, _}) => requestId
+      | ReplyError({requestId, _}) => requestId
+      | Terminate => Int.max_int;
     let requestId = getRequestId(msg) |> Int32.of_int;
-
 
     let buffer = Buffer.create(256);
 
@@ -266,14 +265,22 @@ module Message = {
 
     let bufferToPacket = (~buffer) => {
       let bytes = Buffer.to_bytes(buffer);
-      Transport.Packet.create(~bytes, ~packetType=Packet.Regular, ~id=packetId);
+      Transport.Packet.create(
+        ~bytes,
+        ~packetType=Packet.Regular,
+        ~id=packetId,
+      );
     };
 
     switch (msg) {
     | Terminate =>
       let bytes = Bytes.make(1, Char.chr(3));
-      Transport.Packet.create(~bytes, ~packetType=Packet.Regular, ~id=packetId);
-    | Initialize({requestId, initData}) =>
+      Transport.Packet.create(
+        ~bytes,
+        ~packetType=Packet.Regular,
+        ~id=packetId,
+      );
+    | Initialize({ initData, _}) =>
       let bytes =
         initData
         |> Extension.InitData.to_yojson
@@ -312,8 +319,9 @@ module Message = {
 };
 
 type t = {
-lastId: ref(int),
-transport: ref(option(Transport.t))};
+  lastId: ref(int),
+  transport: ref(option(Transport.t)),
+};
 
 let start =
     (
@@ -345,14 +353,14 @@ let start =
   resTransport |> Result.iter(t => transport := Some(t));
 
   let lastId = ref(0);
-  resTransport |> Result.map(_ => {transport: transport, lastId});
+  resTransport |> Result.map(_ => {transport, lastId});
 };
 
 let send = (~message: Message.Outgoing.t, {transport, lastId}: t) => {
   transport^
   |> Option.iter(trans => {
-        incr(lastId);
-        let id = lastId^;
+       incr(lastId);
+       let id = lastId^;
        // Serialize message into packet
        // Send to transport if available
        let packet = message |> Message.toPacket(~id);

@@ -105,20 +105,17 @@ let close = context => {
 };
 
 let activateByEvent = (~event, context) => {
-  Request.ExtensionService.activateByEvent(
-  ~event,
-  context.client
-  );
-  context
-}
+  Request.ExtensionService.activateByEvent(~event, context.client);
+  context;
+};
 
 let executeContributedCommand = (~command, context) => {
   Request.Commands.executeContributedCommand(
-  ~arguments=[],
-  ~command,
-  context.client
+    ~arguments=[],
+    ~command,
+    context.client,
   );
-  context
+  context;
 };
 
 let waitForProcessClosed = ({processHasExited, _}) => {

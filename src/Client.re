@@ -22,8 +22,10 @@ let start =
     switch (protocolClient^) {
     | None => ()
     | Some(protocol) =>
-    Log.info("Sending message: " ++ Protocol.Message.Outgoing.show(message));
-    Protocol.send(~message, protocol)
+      Log.info(
+        "Sending message: " ++ Protocol.Message.Outgoing.show(message),
+      );
+      Protocol.send(~message, protocol);
     };
 
   let dispatch = msg => {
@@ -86,38 +88,35 @@ let start =
 
   let protocol = Protocol.start(~namedPipe, ~dispatch, ~onError);
 
-  protocol |> Result.iter(pc => {
-  Log.info("Got protocol client.");
-  protocolClient := Some(pc);
-  });
-
   protocol
-  |> Result.map((protocol) => {
-  { lastRequestId, client: protocol };
-  });
+  |> Result.iter(pc => {
+       Log.info("Got protocol client.");
+       protocolClient := Some(pc);
+     });
+
+  protocol |> Result.map(protocol => {{lastRequestId, client: protocol}});
 };
 
-let notify = (~rpcName: string, ~method: string, ~args, {
-  lastRequestId, client
-}: t) => {
+let notify =
+    (~rpcName: string, ~method: string, ~args, {lastRequestId, client}: t) => {
   open Protocol.Message;
   let maybeId = Handlers.stringToId(rpcName);
   maybeId
   |> Option.iter(rpcId => {
-  
-  incr(lastRequestId);
-  let requestId = lastRequestId^;
-  Protocol.send(
-    ~message=Outgoing.RequestJSONArgs({
-      rpcId,
-      requestId,
-      method,
-      args,
-      usesCancellationToken: false,
-    }),
-    client
-  )
-  });
+       incr(lastRequestId);
+       let requestId = lastRequestId^;
+       Protocol.send(
+         ~message=
+           Outgoing.RequestJSONArgs({
+             rpcId,
+             requestId,
+             method,
+             args,
+             usesCancellationToken: false,
+           }),
+         client,
+       );
+     });
 };
 
 let terminate = ({client, _}) => Protocol.send(~message=Terminate, client);
