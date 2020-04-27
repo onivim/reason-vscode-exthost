@@ -21,7 +21,9 @@ let start =
   let send = message =>
     switch (protocolClient^) {
     | None => ()
-    | Some(protocol) => Protocol.send(~message, protocol)
+    | Some(protocol) =>
+    Log.info("Sending message: " ++ Protocol.Message.Outgoing.show(message));
+    Protocol.send(~message, protocol)
     };
 
   let dispatch = msg => {
@@ -84,7 +86,10 @@ let start =
 
   let protocol = Protocol.start(~namedPipe, ~dispatch, ~onError);
 
-  protocol |> Result.iter(pc => protocolClient := Some(pc));
+  protocol |> Result.iter(pc => {
+  Log.info("Got protocol client.");
+  protocolClient := Some(pc);
+  });
 
   protocol
   |> Result.map((protocol) => {

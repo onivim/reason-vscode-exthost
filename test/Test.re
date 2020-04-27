@@ -104,6 +104,15 @@ let close = context => {
   context;
 };
 
+let executeContributedCommand = (~command, context) => {
+  Request.Commands.executeContributedCommand(
+  ~arguments=[],
+  ~command,
+  context.client
+  );
+  context
+};
+
 let waitForProcessClosed = ({processHasExited, _}) => {
   Waiter.wait(~timeout=10.0, ~name="Wait for node process to close", () =>
     processHasExited^

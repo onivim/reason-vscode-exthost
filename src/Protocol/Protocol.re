@@ -230,21 +230,11 @@ module Message = {
       };
     };
 
-  let toPacket = msg => {
+  let toPacket = (~id, msg) => {
     open Outgoing;
 
     let buffer = Buffer.create(256);
 
-    let getRequestId =
-      fun
-      | Initialize({requestId, _}) => requestId
-      | RequestJSONArgs({requestId, _}) => requestId
-      | ReplyOKEmpty({requestId}) => requestId
-      | ReplyOKJSON({requestId, _}) => requestId
-      | ReplyError({requestId, _}) => requestId
-      | Terminate => Int.max_int;
-
-    let id = getRequestId(msg);
     let requestId = id |> Int32.of_int;
 
     let writePreamble = (~buffer, ~msgType, ~requestId) => {
@@ -311,7 +301,9 @@ module Message = {
   };
 };
 
-type t = {transport: ref(option(Transport.t))};
+type t = {
+lastId: ref(int),
+transport: ref(option(Transport.t))};
 
 let start =
     (
@@ -342,20 +334,23 @@ let start =
 
   resTransport |> Result.iter(t => transport := Some(t));
 
-  resTransport |> Result.map(_ => {transport: transport});
+  let lastId = ref(0);
+  resTransport |> Result.map(_ => {transport: transport, lastId});
 };
 
-let send = (~message: Message.Outgoing.t, {transport}: t) => {
+let send = (~message: Message.Outgoing.t, {transport, lastId}: t) => {
   transport^
   |> Option.iter(trans => {
+        incr(lastId);
+        let id = lastId^;
        // Serialize message into packet
        // Send to transport if available
-       let packet = message |> Message.toPacket;
+       let packet = message |> Message.toPacket(~id);
        Transport.send(~packet, trans);
      });
 };
 
-let close = ({transport}: t) => {
+let close = ({transport, _}: t) => {
   transport^
   |> Option.iter(trans => {
        Transport.close(trans);

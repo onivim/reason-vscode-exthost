@@ -8,7 +8,7 @@ describe("ActivationEventsTest", ({test, _}) => {
       let waitForActivation =
         fun
         | Msg.ExtensionService(OnDidActivateExtension({extensionId, _})) =>
-          extensionId == "oni-always-activate"
+          String.equal(extensionId, "oni-always-activate")
         | _ => false;
 
       Test.startWithExtensions(["oni-always-activate"])
@@ -18,4 +18,20 @@ describe("ActivationEventsTest", ({test, _}) => {
       |> Test.waitForProcessClosed;
     })
   })
+  /*describe("onCommand", _ => {
+    test("onCommand:extension.helloWorld", _ => {
+      let waitForActivation =
+        fun
+        | Msg.ExtensionService(OnDidActivateExtension({extensionId, _})) =>
+          extensionId == "oni-activation-events"
+        | _ => false;
+
+      Test.startWithExtensions(["oni-activation-events"])
+      |> Test.waitForReady
+      |> Test.executeContributedCommand(~command="extension.helloWorld")
+      |> Test.waitForMessage(~name="Activation", waitForActivation)
+      |> Test.terminate
+      |> Test.waitForProcessClosed;
+    })
+  })*/
 });
