@@ -1,21 +1,18 @@
 type t = string;
 
-module Internal = {
-  let id = ref(0);
-
-  let nextId = () => {
-    incr(id);
-    id^ |> string_of_int;
+let create = {
+  let lastId = ref(0);
+  pipeName => {
+    incr(lastId);
+    let id = lastId^ |> string_of_int;
+    if (Sys.win32) {
+      Printf.sprintf("\\\\.\\pipe\\%s%s", pipeName, id);
+    } else {
+      let name = Filename.temp_file("exthost-", "-sock" ++ id);
+      Unix.unlink(name);
+      name;
+    };
   };
 };
-
-let create = pipeName =>
-  if (Sys.win32) {
-    Printf.sprintf("\\\\.\\pipe\\%s%s", pipeName, Internal.nextId());
-  } else {
-    let name = Filename.temp_file("exthost-", "-sock" ++ Internal.nextId());
-    Unix.unlink(name);
-    name;
-  };
 
 let toString = v => v;
