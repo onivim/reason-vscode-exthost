@@ -1,6 +1,9 @@
 type reply = unit;
 
-type t = Protocol.t;
+type t = {
+  client: Protocol.t,
+  lastRequestId: ref(int),
+};
 
 module Log = (val Timber.Log.withNamespace("Client"));
 
@@ -14,6 +17,7 @@ let start =
       (),
     ) => {
   let protocolClient: ref(option(Protocol.t)) = ref(None);
+  let lastRequestId = ref(3);
   let send = message =>
     switch (protocolClient^) {
     | None => ()
@@ -82,9 +86,35 @@ let start =
 
   protocol |> Result.iter(pc => protocolClient := Some(pc));
 
-  protocol;
+  protocol
+  |> Result.map((protocol) => {
+  { lastRequestId, client: protocol };
+  });
 };
 
-let terminate = Protocol.send(~message=Terminate);
+let notify = (~rpcName: string, ~method: string, ~args, {
+  lastRequestId, client
+}: t) => {
+  open Protocol.Message;
+  let maybeId = Handlers.stringToId(rpcName);
+  maybeId
+  |> Option.iter(rpcId => {
+  
+  incr(lastRequestId);
+  let requestId = lastRequestId^;
+  Protocol.send(
+    ~message=Outgoing.RequestJSONArgs({
+      rpcId,
+      requestId,
+      method,
+      args,
+      usesCancellationToken: false,
+    }),
+    client
+  )
+  });
+};
 
-let close = Protocol.close;
+let terminate = ({client, _}) => Protocol.send(~message=Terminate, client);
+
+let close = ({client, _}) => Protocol.close(client);
