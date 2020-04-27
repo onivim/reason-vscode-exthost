@@ -1,6 +1,9 @@
 type reply = unit;
 
-type t = Protocol.t;
+type t = {
+  client: Protocol.t,
+  lastRequestId: ref(int),
+};
 
 module Log = (val Timber.Log.withNamespace("Client"));
 
@@ -14,10 +17,15 @@ let start =
       (),
     ) => {
   let protocolClient: ref(option(Protocol.t)) = ref(None);
+  let lastRequestId = ref(0);
   let send = message =>
     switch (protocolClient^) {
     | None => ()
-    | Some(protocol) => Protocol.send(~message, protocol)
+    | Some(protocol) =>
+      Log.info(
+        "Sending message: " ++ Protocol.Message.Outgoing.show(message),
+      );
+      Protocol.send(~message, protocol);
     };
 
   let dispatch = msg => {
@@ -26,7 +34,9 @@ let start =
       | Incoming.Ready =>
         Log.info("Ready");
 
-        send(Outgoing.Initialize({requestId: 1, initData}));
+        incr(lastRequestId);
+        let requestId = lastRequestId^;
+        send(Outgoing.Initialize({requestId, initData}));
         handler(Ready) |> ignore;
 
       | Incoming.Initialized =>
@@ -35,9 +45,11 @@ let start =
         let rpcId =
           "ExtHostConfiguration" |> Handlers.stringToId |> Option.get;
 
+        incr(lastRequestId);
+        let requestId = lastRequestId^;
         send(
           Outgoing.RequestJSONArgs({
-            requestId: 2,
+            requestId,
             rpcId,
             method: "$initializeConfiguration",
             args:
@@ -49,10 +61,12 @@ let start =
         );
         handler(Initialized) |> ignore;
 
+        incr(lastRequestId);
+        let requestId = lastRequestId^;
         let rpcId = "ExtHostWorkspace" |> Handlers.stringToId |> Option.get;
         send(
           Outgoing.RequestJSONArgs({
-            requestId: 3,
+            requestId,
             rpcId,
             method: "$initializeWorkspace",
             args: `List([]),
@@ -80,11 +94,37 @@ let start =
 
   let protocol = Protocol.start(~namedPipe, ~dispatch, ~onError);
 
-  protocol |> Result.iter(pc => protocolClient := Some(pc));
+  protocol
+  |> Result.iter(pc => {
+       Log.info("Got protocol client.");
+       protocolClient := Some(pc);
+     });
 
-  protocol;
+  protocol |> Result.map(protocol => {{lastRequestId, client: protocol}});
 };
 
-let terminate = Protocol.send(~message=Terminate);
+let notify =
+    (~rpcName: string, ~method: string, ~args, {lastRequestId, client}: t) => {
+  open Protocol.Message;
+  let maybeId = Handlers.stringToId(rpcName);
+  maybeId
+  |> Option.iter(rpcId => {
+       incr(lastRequestId);
+       let requestId = lastRequestId^;
+       Protocol.send(
+         ~message=
+           Outgoing.RequestJSONArgs({
+             rpcId,
+             requestId,
+             method,
+             args,
+             usesCancellationToken: false,
+           }),
+         client,
+       );
+     });
+};
 
-let close = Protocol.close;
+let terminate = ({client, _}) => Protocol.send(~message=Terminate, client);
+
+let close = ({client, _}) => Protocol.close(client);

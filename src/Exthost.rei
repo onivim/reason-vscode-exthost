@@ -103,6 +103,16 @@ module Client: {
   let terminate: t => unit;
 };
 
+module Request: {
+  module Commands: {
+    let executeContributedCommand:
+      (~arguments: list(Types.Json.t), ~command: string, Client.t) => unit;
+  };
+  module ExtensionService: {
+    let activateByEvent: (~event: string, Client.t) => unit;
+  };
+};
+
 module Protocol = Protocol;
 module Transport = Transport;
 module Utility = Utility;

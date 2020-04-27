@@ -69,7 +69,7 @@ module Message: {
   };
 
   let ofPacket: Transport.Packet.t => result(Incoming.t, string);
-  let toPacket: Outgoing.t => Transport.Packet.t;
+  let toPacket: (~id: int, Outgoing.t) => Transport.Packet.t;
 };
 
 type t;
