@@ -230,22 +230,21 @@ module Message = {
       };
     };
 
-  let toPacket = msg => {
+  let toPacket = (~id, msg) => {
     open Outgoing;
 
-    let buffer = Buffer.create(256);
-
+    let packetId = id;
     let getRequestId =
       fun
       | Initialize({requestId, _}) => requestId
       | RequestJSONArgs({requestId, _}) => requestId
-      | ReplyOKEmpty({requestId}) => requestId
+      | ReplyOKEmpty({requestId, _}) => requestId
       | ReplyOKJSON({requestId, _}) => requestId
       | ReplyError({requestId, _}) => requestId
       | Terminate => Int.max_int;
+    let requestId = getRequestId(msg) |> Int32.of_int;
 
-    let id = getRequestId(msg);
-    let requestId = id |> Int32.of_int;
+    let buffer = Buffer.create(256);
 
     let writePreamble = (~buffer, ~msgType, ~requestId) => {
       Buffer.add_uint8(buffer, msgType);
@@ -264,16 +263,24 @@ module Message = {
       Buffer.add_string(buf, str);
     };
 
-    let bufferToPacket = (~id, ~buffer) => {
+    let bufferToPacket = (~buffer) => {
       let bytes = Buffer.to_bytes(buffer);
-      Transport.Packet.create(~bytes, ~packetType=Packet.Regular, ~id);
+      Transport.Packet.create(
+        ~bytes,
+        ~packetType=Packet.Regular,
+        ~id=packetId,
+      );
     };
 
     switch (msg) {
     | Terminate =>
       let bytes = Bytes.make(1, Char.chr(3));
-      Transport.Packet.create(~bytes, ~packetType=Packet.Regular, ~id);
-    | Initialize({requestId, initData}) =>
+      Transport.Packet.create(
+        ~bytes,
+        ~packetType=Packet.Regular,
+        ~id=packetId,
+      );
+    | Initialize({initData, _}) =>
       let bytes =
         initData
         |> Extension.InitData.to_yojson
@@ -283,7 +290,7 @@ module Message = {
       Transport.Packet.create(
         ~bytes,
         ~packetType=Packet.Regular,
-        ~id=requestId,
+        ~id=packetId,
       );
     | RequestJSONArgs({rpcId, method, args, usesCancellationToken, _}) =>
       let msgType =
@@ -294,24 +301,27 @@ module Message = {
       writeShortString(buffer, method);
       let args = Yojson.Safe.to_string(args);
       writeLongString(buffer, args);
-      bufferToPacket(~id, ~buffer);
+      bufferToPacket(~buffer);
     | ReplyOKEmpty(_) =>
       writePreamble(~buffer, ~msgType=replyOkEmpty, ~requestId);
-      bufferToPacket(~id, ~buffer);
+      bufferToPacket(~buffer);
     | ReplyOKJSON({json, _}) =>
       writePreamble(~buffer, ~msgType=replyOkJSON, ~requestId);
       let reply = json |> Yojson.Safe.to_string;
       writeLongString(buffer, reply);
-      bufferToPacket(~id, ~buffer);
+      bufferToPacket(~buffer);
     | ReplyError({error, _}) =>
       writePreamble(~buffer, ~msgType=replyErrError, ~requestId);
       writeLongString(buffer, error);
-      bufferToPacket(~id, ~buffer);
+      bufferToPacket(~buffer);
     };
   };
 };
 
-type t = {transport: ref(option(Transport.t))};
+type t = {
+  lastId: ref(int),
+  transport: ref(option(Transport.t)),
+};
 
 let start =
     (
@@ -342,20 +352,23 @@ let start =
 
   resTransport |> Result.iter(t => transport := Some(t));
 
-  resTransport |> Result.map(_ => {transport: transport});
+  let lastId = ref(0);
+  resTransport |> Result.map(_ => {transport, lastId});
 };
 
-let send = (~message: Message.Outgoing.t, {transport}: t) => {
+let send = (~message: Message.Outgoing.t, {transport, lastId}: t) => {
   transport^
   |> Option.iter(trans => {
+       incr(lastId);
+       let id = lastId^;
        // Serialize message into packet
        // Send to transport if available
-       let packet = message |> Message.toPacket;
+       let packet = message |> Message.toPacket(~id);
        Transport.send(~packet, trans);
      });
 };
 
-let close = ({transport}: t) => {
+let close = ({transport, _}: t) => {
   transport^
   |> Option.iter(trans => {
        Transport.close(trans);

@@ -34,6 +34,102 @@ module LocalizedToken: {
   let toString: t => string;
 };
 
+module Contributions: {
+  [@deriving show]
+  module Command: {
+    type t = {
+      command: string,
+      title: LocalizedToken.t,
+      category: option(string),
+    };
+  };
+
+  module Configuration: {
+    type t = list(property)
+    and property = {
+      name: string,
+      default: [@opaque] Types.Json.t,
+    };
+  };
+
+  module Language: {
+    type t = {
+      id: string,
+      extensions: list(string),
+      aliases: list(string),
+      configuration: option(string),
+    };
+  };
+
+  module Grammar: {
+    [@deriving show]
+    type t = {
+      language: option(string),
+      scopeName: string,
+      path: string,
+      treeSitterPath: option(string),
+    };
+  };
+
+  module Theme: {
+    [@deriving show]
+    type t = {
+      label: string,
+      uiTheme: string,
+      path: string,
+    };
+  };
+
+  module IconTheme: {
+    [@deriving show]
+    type t = {
+      id: string,
+      label: string,
+      path: string,
+    };
+  };
+
+  [@deriving show]
+  type t = {
+    commands: list(Command.t),
+    languages: list(Language.t),
+    grammars: list(Grammar.t),
+    themes: list(Theme.t),
+    iconThemes: list(IconTheme.t),
+    configuration: Configuration.t,
+  };
+};
+
+module Manifest: {
+  [@deriving show]
+  type t = {
+    name: string,
+    version: string,
+    author: string,
+    displayName: option(LocalizedToken.t),
+    description: option(string),
+    // publisher: option(string),
+    main: option(string),
+    icon: option(string),
+    categories: list(string),
+    keywords: list(string),
+    engines: string,
+    activationEvents: list(string),
+    extensionDependencies: list(string),
+    extensionPack: list(string),
+    extensionKind: kind,
+    // TODO: Bring back
+    contributes: Contributions.t,
+    enableProposedApi: bool,
+  }
+
+  and kind =
+    | Ui
+    | Workspace;
+
+  let decode: Types.Json.decoder(t);
+};
+
 module Scanner: {
   type category =
     | Default
