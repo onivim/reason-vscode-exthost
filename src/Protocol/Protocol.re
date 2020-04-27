@@ -280,7 +280,7 @@ module Message = {
         ~packetType=Packet.Regular,
         ~id=packetId,
       );
-    | Initialize({ initData, _}) =>
+    | Initialize({initData, _}) =>
       let bytes =
         initData
         |> Extension.InitData.to_yojson
