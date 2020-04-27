@@ -26,8 +26,8 @@ module ExtensionService: {
         extensionId: string,
         activationEvent: option(string),
       })
-    | OnWillActivateExtension({extensionId: string})
-    | OnDidActivateExtension({
+    | WillActivateExtension({extensionId: string})
+    | DidActivateExtension({
         extensionId: string,
         //startup: bool,
         codeLoadingTime: int,
@@ -35,11 +35,11 @@ module ExtensionService: {
         activateResolvedTime: int,
       })
     //activationEvent: option(string),
-    | OnExtensionActivationError({
+    | ExtensionActivationError({
         extensionId: string,
         errorMessage: string,
       })
-    | OnExtensionRuntimeError({extensionId: string});
+    | ExtensionRuntimeError({extensionId: string});
   // TODO: Error?
 };
 

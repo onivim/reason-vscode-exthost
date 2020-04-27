@@ -7,7 +7,7 @@ describe("ActivationEventsTest", ({test, _}) => {
     test("close - extensions", _ => {
       let waitForActivation =
         fun
-        | Msg.ExtensionService(OnDidActivateExtension({extensionId, _})) =>
+        | Msg.ExtensionService(DidActivateExtension({extensionId, _})) =>
           extensionId == "oni-always-activate"
         | _ => false;
 
