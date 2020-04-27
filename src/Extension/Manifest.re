@@ -25,7 +25,7 @@ type t = {
   extensionPack: list(string),
   extensionKind: kind,
   // TODO: Bring back
-  //contributes: Yojson.Safe.t,
+  contributes: Contributions.t,
   enableProposedApi: bool,
 }
 
@@ -79,8 +79,8 @@ module Decode = {
             field.withDefault("extensionPack", [], list(string)),
           extensionKind: field.withDefault("extensionKind", Ui, kind),
           // TODO: Bring back
-          //contributes:
-          // field.required("contributes", v => v),
+          contributes:
+           field.required("contributes", Contributions.decode),
           enableProposedApi:
             field.withDefault("enableProposedApi", false, bool),
         }
@@ -109,8 +109,8 @@ let remapPaths = (rootPath: string, manifest: t) => {
   ...manifest,
   //main: Option.map(Path.join(rootPath), manifest.main),
   icon: Option.map(Path.join(rootPath), manifest.icon),
-  //contributes:
-  //ExtensionContributions.remapPaths(rootPath, manifest.contributes),
+  contributes:
+  Contributions.remapPaths(rootPath, manifest.contributes),
 };
 
 let updateName = (nameSetter, manifest: t) => {
@@ -122,5 +122,5 @@ let localize = (loc: LocalizationDictionary.t, manifest: t) => {
   ...manifest,
   displayName:
     Option.map(LocalizedToken.localize(loc), manifest.displayName),
-  //contributes: ExtensionContributions.localize(loc, manifest.contributes),
+  contributes: Contributions.localize(loc, manifest.contributes),
 };
