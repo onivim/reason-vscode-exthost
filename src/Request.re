@@ -6,5 +6,17 @@ module Commands = {
 	~args=`List([`String(command), ...arguments]),
 	client
 	);
-  }
+  };
+};
+
+module ExtensionService = {
+	
+  let activateByEvent = (~event, client) => {
+    Client.notify(
+	~rpcName="ExtHostExtensionService",
+	~method="$activateByEvent",
+	~args=`List([`String(event)]),
+	client
+	);
+  };
 };

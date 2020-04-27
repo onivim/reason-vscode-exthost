@@ -111,6 +111,9 @@ module Request: {
       ~command: string,
       Client.t
     ) => unit;
+  };
+  module ExtensionService: {
+    let activateByEvent: (~event:string, Client.t) => unit;
   }
 }
 

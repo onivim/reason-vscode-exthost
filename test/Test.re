@@ -104,6 +104,14 @@ let close = context => {
   context;
 };
 
+let activateByEvent = (~event, context) => {
+  Request.ExtensionService.activateByEvent(
+  ~event,
+  context.client
+  );
+  context
+}
+
 let executeContributedCommand = (~command, context) => {
   Request.Commands.executeContributedCommand(
   ~arguments=[],

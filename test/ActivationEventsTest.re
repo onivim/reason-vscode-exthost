@@ -2,8 +2,8 @@ open TestFramework;
 
 open Exthost;
 
-describe("ActivationEventsTest", ({test, _}) => {
-  describe("* (wildcard activation)", _ => {
+describe("ActivationEventsTest", ({describe, _}) => {
+  describe("* (wildcard activation)", ({test, _}) => {
     test("close - extensions", _ => {
       let waitForActivation =
         fun
@@ -18,7 +18,7 @@ describe("ActivationEventsTest", ({test, _}) => {
       |> Test.waitForProcessClosed;
     })
   })
-  /*describe("onCommand", _ => {
+  describe("onCommand", ({test, _}) => {
     test("onCommand:extension.helloWorld", _ => {
       let waitForActivation =
         fun
@@ -28,10 +28,10 @@ describe("ActivationEventsTest", ({test, _}) => {
 
       Test.startWithExtensions(["oni-activation-events"])
       |> Test.waitForReady
-      |> Test.executeContributedCommand(~command="extension.helloWorld")
+      |> Test.activateByEvent(~event="onCommand:extension.helloWorld")
       |> Test.waitForMessage(~name="Activation", waitForActivation)
       |> Test.terminate
       |> Test.waitForProcessClosed;
     })
-  })*/
+  })
 });
