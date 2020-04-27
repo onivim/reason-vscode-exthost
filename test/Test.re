@@ -3,6 +3,8 @@ open Extension;
 open Exthost;
 open TestLib;
 
+module Log = (val Timber.Log.withNamespace("Test"));
+
 module InitData = Extension.InitData;
 module Uri = Types.Uri;
 
@@ -64,6 +66,7 @@ let startWithExtensions =
       ~onError,
       (),
     )
+    |> ResultEx.tap_error(msg => Log.error(msg))
     |> Result.get_ok;
 
   let processHasExited = ref(false);

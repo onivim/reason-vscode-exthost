@@ -1,7 +1,9 @@
+module Log = (val Timber.Log.withNamespace("Transport"));
+
 let spawn = (~additionalEnv=[], ~onExit, args) => {
   let env = Luv.Env.environ() |> Result.get_ok;
   let nodeFullPath = Exthost.Utility.getNodePath();
-  print_endline("Using node path: " ++ nodeFullPath);
+  Log.info("Using node path: " ++ nodeFullPath);
   Luv.Process.spawn(
     ~on_exit=onExit,
     ~environment=env @ additionalEnv,
@@ -25,5 +27,6 @@ let spawn = (~additionalEnv=[], ~onExit, args) => {
     nodeFullPath,
     [nodeFullPath, ...args],
   )
+  |> ResultEx.tap_error(msg => Log.error(Luv.Error.strerror(msg)))
   |> Result.get_ok;
 };
