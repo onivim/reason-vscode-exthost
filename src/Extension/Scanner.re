@@ -17,21 +17,16 @@ type category =
   | User
   | Development;
 
-type t = {
-  category,
-  manifest: Manifest.t,
-  path: string,
+module ScanResult = {
+  type t = {
+    category,
+    manifest: Manifest.t,
+    path: string,
+  };
 };
 
 let remapManifest = (directory: string, manifest: Manifest.t) => {
-  /*let manifest = {
-      ...manifest,
-      main: Option.map(m => Path.join(directory, m), manifest.main),
-    };*/
-  Manifest.remapPaths(
-    directory,
-    manifest,
-  );
+  Manifest.remapPaths(directory, manifest);
 };
 
 let _getLocalizations = path =>
@@ -69,7 +64,7 @@ let load = (~prefix=None, ~category, packageFile) => {
          )
       |> localize;
 
-    Some({category, manifest, path: directory});
+    Some(ScanResult.{category, manifest, path: directory});
 
   | Error(err) =>
     Log.errorf(m =>

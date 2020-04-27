@@ -14,18 +14,23 @@ let nodePath = Utility.getNodePath();
 let extensions =
   Path.join(Sys.getcwd(), "test_collateral/extensions")
   |> Extension.Scanner.scan(~prefix=None, ~category=Bundled)
-  |> List.map(InitData.Extension.ofScanner);
+  |> List.map((Extension.Scanner.ScanResult.{manifest, path, _}) => {
+       InitData.Extension.ofManifestAndPath(manifest, path)
+     });
 
 extensions |> List.iter(m => m |> InitData.Extension.show |> prerr_endline);
 
 let parentPid = Luv.Pid.getpid();
 
+let logsLocation = Filename.temp_file("test", "log") |> Uri.fromPath;
+let logFile = Filename.get_temp_dir_name() |> Uri.fromPath;
+
 let initData =
   InitData.create(
     ~version="9.9.9",
     ~parentPid,
-    ~logsLocation=Uri.fromPath("/tmp/loggy"),
-    ~logFile=Uri.fromPath("/tmp/log-file"),
+    ~logsLocation,
+    ~logFile,
     extensions,
   );
 

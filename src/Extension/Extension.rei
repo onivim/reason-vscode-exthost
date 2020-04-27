@@ -41,16 +41,20 @@ module Scanner: {
     | User
     | Development;
 
-  type t = {
-    category,
-    manifest: Manifest.t,
-    path: string,
+  module ScanResult: {
+    type t = {
+      category,
+      manifest: Manifest.t,
+      path: string,
+    };
   };
 
   let load:
-    (~prefix: option(string)=?, ~category: category, string) => option(t);
+    (~prefix: option(string)=?, ~category: category, string) =>
+    option(ScanResult.t);
   let scan:
-    (~prefix: option(string)=?, ~category: category, string) => list(t);
+    (~prefix: option(string)=?, ~category: category, string) =>
+    list(ScanResult.t);
 };
 
 module InitData: {
@@ -69,7 +73,7 @@ module InitData: {
       enableProposedApi: bool,
     };
 
-    let ofScanner: Scanner.t => t;
+    let ofManifestAndPath: (Manifest.t, string) => t;
   };
 
   module Environment: {
