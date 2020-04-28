@@ -19,7 +19,12 @@ let noopHandler = _ => None;
 let noopErrorHandler = _ => ();
 
 let startWithExtensions =
-    (~pid=Luv.Pid.getpid(), ~handler=noopHandler, ~onError=noopErrorHandler, extensions) => {
+    (
+      ~pid=Luv.Pid.getpid(),
+      ~handler=noopHandler,
+      ~onError=noopErrorHandler,
+      extensions,
+    ) => {
   let messages = ref([]);
 
   let wrappedHandler = msg => {

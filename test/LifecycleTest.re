@@ -18,12 +18,13 @@ describe("LifecycleTest", ({test, _}) => {
     // if parent process is gone.
     let dummyProcess = Sys.win32 ? "cmd.exe" : "sh";
 
-    let dummyPid = Luv.Process.spawn(dummyProcess, ["echo '1'"]) 
-    |> Result.map(Luv.Process.pid)
-    |> Result.get_ok;
+    let dummyPid =
+      Luv.Process.spawn(dummyProcess, ["echo '1'"])
+      |> Result.map(Luv.Process.pid)
+      |> Result.get_ok;
 
     Test.startWithExtensions(~pid=dummyPid, ["oni-always-activate"])
     |> Test.waitForReady
-    |> Test.waitForProcessClosed
+    |> Test.waitForProcessClosed;
   });
 });
