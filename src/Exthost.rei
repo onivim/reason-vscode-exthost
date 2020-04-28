@@ -45,18 +45,18 @@ module ExtensionService: {
 
 module MessageService: {
   type severity =
-  | Ignore
-  | Info
-  | Warning
-  | Error;
+    | Ignore
+    | Info
+    | Warning
+    | Error;
 
   [@deriving show]
   type msg =
     | ShowMessage({
-        severity: severity,
+        severity,
         message: string,
         extensionId: option(string),
-      })
+      });
 };
 
 module Telemetry: {
@@ -74,11 +74,17 @@ module Telemetry: {
 
 module StatusBar: {
   [@deriving show]
+  type alignment =
+    | Left
+    | Right;
+
+  [@deriving show]
   type msg =
     | SetEntry({
-        id: int,
+        id: string,
         text: string,
-        alignment: int,
+        source: string,
+        alignment,
         priority: int,
       });
 };
