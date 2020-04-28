@@ -55,8 +55,7 @@ let json: Yojson.Safe.t = Yojson.Safe.from_string(testTheme);
 
 describe("IconTheme", ({test, _}) => {
   test("gets icon for matching filename", ({expect, _}) => {
-    let _iconTheme =
-      IconTheme.ofJson(json) |> Option.get;
+    let _iconTheme = IconTheme.ofJson(json) |> Option.get;
     let icon: option(IconTheme.IconDefinition.t) =
       IconTheme.getIconForFile(_iconTheme, "file1", "some-random-language");
 
@@ -67,8 +66,7 @@ describe("IconTheme", ({test, _}) => {
   });
 
   test("gets icon for matching extension", ({expect, _}) => {
-    let _iconTheme =
-      IconTheme.ofJson(json) |> Option.get;
+    let _iconTheme = IconTheme.ofJson(json) |> Option.get;
     let icon: option(IconTheme.IconDefinition.t) =
       IconTheme.getIconForFile(
         _iconTheme,
@@ -83,8 +81,7 @@ describe("IconTheme", ({test, _}) => {
   });
 
   test("gets icon for matching extension", ({expect, _}) => {
-    let _iconTheme =
-      IconTheme.ofJson(json) |> Option.get;
+    let _iconTheme = IconTheme.ofJson(json) |> Option.get;
     let icon: option(IconTheme.IconDefinition.t) =
       IconTheme.getIconForFile(_iconTheme, "file1.rnd", "language1");
 
@@ -95,8 +92,7 @@ describe("IconTheme", ({test, _}) => {
   });
 
   test("falls back to default icon", ({expect, _}) => {
-    let _iconTheme =
-      IconTheme.ofJson(json) |> Option.get;
+    let _iconTheme = IconTheme.ofJson(json) |> Option.get;
     let icon: option(IconTheme.IconDefinition.t) =
       IconTheme.getIconForFile(_iconTheme, "file1.rnd", "unknown-language");
 
