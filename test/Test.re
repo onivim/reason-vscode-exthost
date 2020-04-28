@@ -19,7 +19,12 @@ let noopHandler = _ => None;
 let noopErrorHandler = _ => ();
 
 let startWithExtensions =
-    (~handler=noopHandler, ~onError=noopErrorHandler, extensions) => {
+    (
+      ~pid=Luv.Pid.getpid(),
+      ~handler=noopHandler,
+      ~onError=noopErrorHandler,
+      extensions,
+    ) => {
   let messages = ref([]);
 
   let wrappedHandler = msg => {
@@ -48,7 +53,7 @@ let startWithExtensions =
   let logsLocation = Filename.temp_file("test", "log") |> Uri.fromPath;
   let logFile = Filename.get_temp_dir_name() |> Uri.fromPath;
 
-  let parentPid = Luv.Pid.getpid();
+  let parentPid = pid;
 
   let initData =
     InitData.create(
@@ -119,7 +124,7 @@ let executeContributedCommand = (~command, context) => {
 };
 
 let waitForProcessClosed = ({processHasExited, _}) => {
-  Waiter.wait(~timeout=10.0, ~name="Wait for node process to close", () =>
+  Waiter.wait(~timeout=15.0, ~name="Wait for node process to close", () =>
     processHasExited^
   );
 };
