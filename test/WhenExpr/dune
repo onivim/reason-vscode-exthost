@@ -1,0 +1,6 @@
+(library
+    (name ExtHostWhenExprTests)
+    (public_name vscode-exthost-test.whenexpr)
+    (library_flags (-linkall -g))
+    (modules (:standard))
+    (libraries vscode-exthost.whenexpr rely.lib console.lib))

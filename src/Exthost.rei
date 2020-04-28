@@ -113,6 +113,8 @@ module Request: {
   };
 };
 
+module Extension = Extension;
 module Protocol = Protocol;
 module Transport = Transport;
 module Utility = Utility;
+module WhenExpr = WhenExpr;

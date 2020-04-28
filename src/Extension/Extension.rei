@@ -41,6 +41,7 @@ module Contributions: {
       command: string,
       title: LocalizedToken.t,
       category: option(string),
+      condition: WhenExpr.t,
     };
   };
 
@@ -60,6 +61,8 @@ module Contributions: {
       configuration: option(string),
     };
   };
+
+  module Menu: {type t = Types.Menu.Schema.definition;};
 
   module Grammar: {
     [@deriving show]
@@ -91,13 +94,16 @@ module Contributions: {
 
   [@deriving show]
   type t = {
+    configuration: Configuration.t,
     commands: list(Command.t),
+    menus: list(Menu.t),
     languages: list(Language.t),
     grammars: list(Grammar.t),
     themes: list(Theme.t),
     iconThemes: list(IconTheme.t),
-    configuration: Configuration.t,
   };
+
+  let encode: Types.Json.encoder(t);
 };
 
 module Manifest: {
@@ -128,6 +134,10 @@ module Manifest: {
     | Workspace;
 
   let decode: Types.Json.decoder(t);
+
+  module Encode: {let kind: Types.Json.encoder(kind);};
+
+  let getDisplayName: t => string;
 };
 
 module Scanner: {

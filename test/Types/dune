@@ -1,0 +1,6 @@
+(library
+    (name ExtHostTypesTests)
+    (public_name vscode-exthost-test.types)
+    (library_flags (-linkall -g))
+    (modules (:standard))
+    (libraries vscode-exthost rely.lib console.lib))
