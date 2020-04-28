@@ -5,6 +5,8 @@ type t =
   | Commands(Commands.msg)
   | DebugService(DebugService.msg)
   | ExtensionService(ExtensionService.msg)
+  | MessageService(MessageService.msg)
+  | StatusBar(StatusBar.msg)
   | Telemetry(Telemetry.msg)
   | Initialized
   | Disconnected

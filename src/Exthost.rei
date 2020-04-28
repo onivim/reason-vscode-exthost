@@ -43,6 +43,22 @@ module ExtensionService: {
   // TODO: Error?
 };
 
+module MessageService: {
+  type severity =
+    | Ignore
+    | Info
+    | Warning
+    | Error;
+
+  [@deriving show]
+  type msg =
+    | ShowMessage({
+        severity,
+        message: string,
+        extensionId: option(string),
+      });
+};
+
 module Telemetry: {
   [@deriving show]
   type msg =
@@ -56,6 +72,23 @@ module Telemetry: {
       });
 };
 
+module StatusBar: {
+  [@deriving show]
+  type alignment =
+    | Left
+    | Right;
+
+  [@deriving show]
+  type msg =
+    | SetEntry({
+        id: string,
+        text: string,
+        source: string,
+        alignment,
+        priority: int,
+      });
+};
+
 module Msg: {
   [@deriving show]
   type t =
@@ -64,6 +97,8 @@ module Msg: {
     | Commands(Commands.msg)
     | DebugService(DebugService.msg)
     | ExtensionService(ExtensionService.msg)
+    | MessageService(MessageService.msg)
+    | StatusBar(StatusBar.msg)
     | Telemetry(Telemetry.msg)
     | Initialized
     | Disconnected
