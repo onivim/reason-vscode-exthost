@@ -89,7 +89,7 @@ module TerminalService: {
     | SendProcessExit({
         terminalId: int,
         exitCode: int,
-      })
+      });
 };
 
 module StatusBar: {
