@@ -146,6 +146,11 @@ module Request: {
         Client.t
       ) =>
       unit;
+
+    let acceptProcessInput: (~id: int, ~data: string, Client.t) => unit;
+    let acceptProcessResize:
+      (~id: int, ~cols: int, ~rows: int, Client.t) => unit;
+    let acceptProcessShutdown: (~id: int, ~immediate: bool, Client.t) => unit;
   };
 };
 

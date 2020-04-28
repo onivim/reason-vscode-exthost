@@ -46,4 +46,31 @@ module TerminalService = {
       client,
     );
   };
+
+  let acceptProcessInput = (~id, ~data, client) => {
+    Client.notify(
+      ~rpcName="ExtHostTerminalService",
+      ~method="$acceptProcessInput",
+      ~args=`List([`Int(id), `String(data)]),
+      client,
+    );
+  };
+
+  let acceptProcessResize = (~id, ~cols, ~rows, client) => {
+    Client.notify(
+      ~rpcName="ExtHostTerminalService",
+      ~method="$acceptProcessResize",
+      ~args=`List([`Int(id), `Int(cols), `Int(rows)]),
+      client,
+    );
+  };
+
+  let acceptProcessShutdown = (~id, ~immediate, client) => {
+    Client.notify(
+      ~rpcName="ExtHostTerminalService",
+      ~method="$acceptProcessShutdown",
+      ~args=`List([`Int(id), `Bool(immediate)]),
+      client,
+    );
+  };
 };
