@@ -35,8 +35,7 @@ let start =
         Log.info("Ready");
 
         incr(lastRequestId);
-        let requestId = lastRequestId^;
-        send(Outgoing.Initialize({requestId, initData}));
+        send(Outgoing.Initialize({requestId: lastRequestId^, initData}));
         handler(Ready) |> ignore;
 
       | Incoming.Initialized =>
@@ -46,10 +45,9 @@ let start =
           "ExtHostConfiguration" |> Handlers.stringToId |> Option.get;
 
         incr(lastRequestId);
-        let requestId = lastRequestId^;
         send(
           Outgoing.RequestJSONArgs({
-            requestId,
+            requestId: lastRequestId^,
             rpcId,
             method: "$initializeConfiguration",
             args:
@@ -62,11 +60,10 @@ let start =
         handler(Initialized) |> ignore;
 
         incr(lastRequestId);
-        let requestId = lastRequestId^;
         let rpcId = "ExtHostWorkspace" |> Handlers.stringToId |> Option.get;
         send(
           Outgoing.RequestJSONArgs({
-            requestId,
+            requestId: lastRequestId^,
             rpcId,
             method: "$initializeWorkspace",
             args: `List([]),
