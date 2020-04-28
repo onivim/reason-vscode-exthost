@@ -7,8 +7,8 @@ describe("ActivationEventsTest", ({describe, _}) => {
     test("close - extensions", _ => {
       let waitForActivation =
         fun
-        | Msg.ExtensionService(OnDidActivateExtension({extensionId, _})) =>
-          String.equal(extensionId, "oni-always-activate")
+        | Msg.ExtensionService(DidActivateExtension({extensionId, _})) =>
+          extensionId == "oni-always-activate"
         | _ => false;
 
       Test.startWithExtensions(["oni-always-activate"])
@@ -22,7 +22,7 @@ describe("ActivationEventsTest", ({describe, _}) => {
     test("onCommand:extension.helloWorld", _ => {
       let waitForActivation =
         fun
-        | Msg.ExtensionService(OnDidActivateExtension({extensionId, _})) =>
+        | Msg.ExtensionService(DidActivateExtension({extensionId, _})) =>
           extensionId == "oni-activation-events"
         | _ => false;
 
@@ -38,7 +38,7 @@ describe("ActivationEventsTest", ({describe, _}) => {
     test("onLanguage:testlang", _ => {
       let waitForActivation =
         fun
-        | Msg.ExtensionService(OnDidActivateExtension({extensionId, _})) =>
+        | Msg.ExtensionService(DidActivateExtension({extensionId, _})) =>
           extensionId == "oni-activation-events"
         | _ => false;
 

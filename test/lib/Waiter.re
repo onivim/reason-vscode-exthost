@@ -1,4 +1,4 @@
-let wait = (~timeout=1.0, ~name="TODO", condition) => {
+let wait = (~timeout=5.0, ~name="TODO", condition) => {
   let start = Unix.gettimeofday();
   let delta = () => Unix.gettimeofday() -. start;
 
