@@ -103,7 +103,11 @@ let handlers =
       ~mapper=msg => Msg.Telemetry(msg),
       "MainThreadTelemetry",
     ),
-    mainNotImplemented("MainThreadTerminalService"),
+    main(
+      ~handler=TerminalService.handle,
+      ~mapper= msg => Msg.TerminalService(msg),
+      "MainThreadTerminalService"
+    ),
     mainNotImplemented("MainThreadWebviews"),
     mainNotImplemented("MainThreadUrls"),
     mainNotImplemented("MainThreadWorkspace"),

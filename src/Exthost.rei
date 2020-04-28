@@ -43,6 +43,27 @@ module ExtensionService: {
   // TODO: Error?
 };
 
+module TerminalService: {
+  [@deriving show]
+  type msg =
+  | SendProcessTitle({
+      terminalId: int,
+      title: string
+  })
+  | SendProcessData({
+      terminalId: int,
+      data: string,
+  })
+  | SendProcessPid({
+    terminalId: int,
+    pid: int,
+  })
+  | SendProcessExit({
+      terminalId: int,
+      exitCode: int,
+  })
+};
+
 module Telemetry: {
   [@deriving show]
   type msg =
@@ -65,6 +86,7 @@ module Msg: {
     | DebugService(DebugService.msg)
     | ExtensionService(ExtensionService.msg)
     | Telemetry(Telemetry.msg)
+    | TerminalService(TerminalService.msg)
     | Initialized
     | Disconnected
     | Unhandled

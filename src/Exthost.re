@@ -6,6 +6,7 @@ module Commands = Commands;
 module DebugService = DebugService;
 module ExtensionService = ExtensionService;
 module Telemetry = Telemetry;
+module TerminalService = TerminalService;
 
 module NamedPipe = NamedPipe;
 

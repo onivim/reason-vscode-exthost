@@ -6,6 +6,7 @@ type t =
   | DebugService(DebugService.msg)
   | ExtensionService(ExtensionService.msg)
   | Telemetry(Telemetry.msg)
+  | TerminalService(TerminalService.msg)
   | Initialized
   | Disconnected
   | Unhandled
