@@ -1,22 +1,21 @@
-
 [@deriving show]
 type msg =
-| SendProcessTitle({
-    terminalId: int,
-    title: string
-})
-| SendProcessData({
-    terminalId: int,
-    data: string,
-})
-| SendProcessPid({
-  terminalId: int,
-  pid: int,
-})
-| SendProcessExit({
-    terminalId: int,
-    exitCode: int,
-})
+  | SendProcessTitle({
+      terminalId: int,
+      title: string,
+    })
+  | SendProcessData({
+      terminalId: int,
+      data: string,
+    })
+  | SendProcessPid({
+      terminalId: int,
+      pid: int,
+    })
+  | SendProcessExit({
+      terminalId: int,
+      exitCode: int,
+    });
 // TODO: Error?
 
 let handle = (method, args: Yojson.Safe.t) => {
@@ -52,10 +51,12 @@ let handle = (method, args: Yojson.Safe.t) => {
     }
 
   | _ =>
-      Error(Printf.sprintf(
+    Error(
+      Printf.sprintf(
         "Unhandled Terminal message - %s: %s",
         method,
         Yojson.Safe.to_string(args),
-      ))
+      ),
+    )
   };
 };

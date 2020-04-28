@@ -105,8 +105,8 @@ let handlers =
     ),
     main(
       ~handler=TerminalService.handle,
-      ~mapper= msg => Msg.TerminalService(msg),
-      "MainThreadTerminalService"
+      ~mapper=msg => Msg.TerminalService(msg),
+      "MainThreadTerminalService",
     ),
     mainNotImplemented("MainThreadWebviews"),
     mainNotImplemented("MainThreadUrls"),

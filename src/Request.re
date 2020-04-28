@@ -19,3 +19,31 @@ module ExtensionService = {
     );
   };
 };
+
+module TerminalService = {
+  let spawnExtHostProcess =
+      (
+        ~id,
+        ~shellLaunchConfig,
+        ~activeWorkspaceRoot,
+        ~cols,
+        ~rows,
+        ~isWorkspaceShellAllowed,
+        client,
+      ) => {
+    Client.notify(
+      ~rpcName="ExtHostTerminalService",
+      ~method="$spawnExtHostProcess",
+      ~args=
+        `List([
+          `Int(id),
+          Types.ShellLaunchConfig.to_yojson(shellLaunchConfig),
+          Types.Uri.to_yojson(activeWorkspaceRoot),
+          `Int(cols),
+          `Int(rows),
+          `Bool(isWorkspaceShellAllowed),
+        ]),
+      client,
+    );
+  };
+};

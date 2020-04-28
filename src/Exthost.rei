@@ -46,22 +46,22 @@ module ExtensionService: {
 module TerminalService: {
   [@deriving show]
   type msg =
-  | SendProcessTitle({
-      terminalId: int,
-      title: string
-  })
-  | SendProcessData({
-      terminalId: int,
-      data: string,
-  })
-  | SendProcessPid({
-    terminalId: int,
-    pid: int,
-  })
-  | SendProcessExit({
-      terminalId: int,
-      exitCode: int,
-  })
+    | SendProcessTitle({
+        terminalId: int,
+        title: string,
+      })
+    | SendProcessData({
+        terminalId: int,
+        data: string,
+      })
+    | SendProcessPid({
+        terminalId: int,
+        pid: int,
+      })
+    | SendProcessExit({
+        terminalId: int,
+        exitCode: int,
+      });
 };
 
 module Telemetry: {
@@ -132,6 +132,20 @@ module Request: {
   };
   module ExtensionService: {
     let activateByEvent: (~event: string, Client.t) => unit;
+  };
+
+  module TerminalService: {
+    let spawnExtHostProcess:
+      (
+        ~id: int,
+        ~shellLaunchConfig: Types.ShellLaunchConfig.t,
+        ~activeWorkspaceRoot: Types.Uri.t,
+        ~cols: int,
+        ~rows: int,
+        ~isWorkspaceShellAllowed: bool,
+        Client.t
+      ) =>
+      unit;
   };
 };
 
