@@ -92,11 +92,19 @@ let handlers =
     mainNotImplemented("MainThreadLanguageFeatures"),
     mainNotImplemented("MainThreadLanguages"),
     mainNotImplemented("MainThreadLog"),
-    mainNotImplemented("MainThreadMessageService"),
+    main(
+      ~handler=MessageService.handle,
+      ~mapper=msg => Msg.MessageService(msg),
+      "MainThreadMessageService",
+    ),
     mainNotImplemented("MainThreadOutputService"),
     mainNotImplemented("MainThreadProgress"),
     mainNotImplemented("MainThreadQuickOpen"),
-    mainNotImplemented("MainThreadStatusBar"),
+    main(
+      ~handler=StatusBar.handle,
+      ~mapper=msg => Msg.StatusBar(msg),
+      "MainThreadStatusBar",
+    ),
     mainNotImplemented("MainThreadStorage"),
     main(
       ~handler=Telemetry.handle,

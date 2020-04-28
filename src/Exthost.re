@@ -5,6 +5,8 @@ module Request = Request;
 module Commands = Commands;
 module DebugService = DebugService;
 module ExtensionService = ExtensionService;
+module MessageService = MessageService;
+module StatusBar = StatusBar;
 module Telemetry = Telemetry;
 module TerminalService = TerminalService;
 

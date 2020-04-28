@@ -40,7 +40,35 @@ module ExtensionService: {
         errorMessage: string,
       })
     | ExtensionRuntimeError({extensionId: string});
-  // TODO: Error?
+};
+
+module MessageService: {
+  type severity =
+    | Ignore
+    | Info
+    | Warning
+    | Error;
+
+  [@deriving show]
+  type msg =
+    | ShowMessage({
+        severity,
+        message: string,
+        extensionId: option(string),
+      });
+};
+
+module Telemetry: {
+  [@deriving show]
+  type msg =
+    | PublicLog({
+        eventName: string,
+        data: Yojson.Safe.t,
+      })
+    | PublicLog2({
+        eventName: string,
+        data: Yojson.Safe.t,
+      });
 };
 
 module TerminalService: {
@@ -61,19 +89,23 @@ module TerminalService: {
     | SendProcessExit({
         terminalId: int,
         exitCode: int,
-      });
+      })
 };
 
-module Telemetry: {
+module StatusBar: {
+  [@deriving show]
+  type alignment =
+    | Left
+    | Right;
+
   [@deriving show]
   type msg =
-    | PublicLog({
-        eventName: string,
-        data: Yojson.Safe.t,
-      })
-    | PublicLog2({
-        eventName: string,
-        data: Yojson.Safe.t,
+    | SetEntry({
+        id: string,
+        text: string,
+        source: string,
+        alignment,
+        priority: int,
       });
 };
 
@@ -85,6 +117,8 @@ module Msg: {
     | Commands(Commands.msg)
     | DebugService(DebugService.msg)
     | ExtensionService(ExtensionService.msg)
+    | MessageService(MessageService.msg)
+    | StatusBar(StatusBar.msg)
     | Telemetry(Telemetry.msg)
     | TerminalService(TerminalService.msg)
     | Initialized

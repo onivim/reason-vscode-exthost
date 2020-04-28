@@ -16,7 +16,6 @@ type msg =
       terminalId: int,
       exitCode: int,
     });
-// TODO: Error?
 
 let handle = (method, args: Yojson.Safe.t) => {
   switch (method) {
