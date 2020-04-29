@@ -109,7 +109,6 @@ let getDisplayName = (manifest: t) => {
 
 let remapPaths = (rootPath: string, manifest: t) => {
   ...manifest,
-  //main: Option.map(Path.join(rootPath), manifest.main),
   icon: Option.map(Path.join(rootPath), manifest.icon),
   contributes: Contributions.remapPaths(rootPath, manifest.contributes),
 };

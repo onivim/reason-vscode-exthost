@@ -7,4 +7,6 @@
         vscode-exthost-test
         vscode-exthost-test.transport
         vscode-exthost-test.extension
+        vscode-exthost-test.whenexpr
+        vscode-exthost-test.types
             ))

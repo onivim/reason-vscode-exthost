@@ -1,0 +1,5 @@
+(library
+    (name WhenExpr)
+    (public_name vscode-exthost.whenexpr)
+    (preprocess (pps ppx_deriving.show))
+    (libraries re timber vscode-exthost.core))

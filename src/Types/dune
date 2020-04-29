@@ -2,5 +2,5 @@
     (name Types)
     (public_name vscode-exthost.types)
     (library_flags (-linkall))
-    (libraries luv yojson decoders-yojson)
+    (libraries luv Rench yojson decoders-yojson vscode-exthost.core vscode-exthost.whenexpr)
     (preprocess (pps ppx_deriving.show ppx_deriving_yojson)))

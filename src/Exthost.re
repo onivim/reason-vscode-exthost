@@ -14,6 +14,8 @@ module NamedPipe = NamedPipe;
 
 module Msg = Msg;
 
+module Extension = Extension;
 module Protocol = Protocol;
 module Transport = Transport;
 module Utility = Utility;
+module WhenExpr = WhenExpr;
