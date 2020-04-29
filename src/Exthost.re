@@ -8,6 +8,7 @@ module ExtensionService = ExtensionService;
 module MessageService = MessageService;
 module StatusBar = StatusBar;
 module Telemetry = Telemetry;
+module TerminalService = TerminalService;
 
 module NamedPipe = NamedPipe;
 

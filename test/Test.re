@@ -140,6 +140,11 @@ let waitForReady = context => {
   waitForMessage(~name="Ready", msg => msg == Ready, context);
 };
 
+let withClient = (f, context) => {
+  f(context.client);
+  context;
+};
+
 let terminate = context => {
   Client.terminate(context.client);
   context;

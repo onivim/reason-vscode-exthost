@@ -40,7 +40,6 @@ module ExtensionService: {
         errorMessage: string,
       })
     | ExtensionRuntimeError({extensionId: string});
-  // TODO: Error?
 };
 
 module MessageService: {
@@ -72,6 +71,27 @@ module Telemetry: {
       });
 };
 
+module TerminalService: {
+  [@deriving show]
+  type msg =
+    | SendProcessTitle({
+        terminalId: int,
+        title: string,
+      })
+    | SendProcessData({
+        terminalId: int,
+        data: string,
+      })
+    | SendProcessPid({
+        terminalId: int,
+        pid: int,
+      })
+    | SendProcessExit({
+        terminalId: int,
+        exitCode: int,
+      });
+};
+
 module StatusBar: {
   [@deriving show]
   type alignment =
@@ -100,6 +120,7 @@ module Msg: {
     | MessageService(MessageService.msg)
     | StatusBar(StatusBar.msg)
     | Telemetry(Telemetry.msg)
+    | TerminalService(TerminalService.msg)
     | Initialized
     | Disconnected
     | Unhandled
@@ -145,6 +166,25 @@ module Request: {
   };
   module ExtensionService: {
     let activateByEvent: (~event: string, Client.t) => unit;
+  };
+
+  module TerminalService: {
+    let spawnExtHostProcess:
+      (
+        ~id: int,
+        ~shellLaunchConfig: Types.ShellLaunchConfig.t,
+        ~activeWorkspaceRoot: Types.Uri.t,
+        ~cols: int,
+        ~rows: int,
+        ~isWorkspaceShellAllowed: bool,
+        Client.t
+      ) =>
+      unit;
+
+    let acceptProcessInput: (~id: int, ~data: string, Client.t) => unit;
+    let acceptProcessResize:
+      (~id: int, ~cols: int, ~rows: int, Client.t) => unit;
+    let acceptProcessShutdown: (~id: int, ~immediate: bool, Client.t) => unit;
   };
 };
 

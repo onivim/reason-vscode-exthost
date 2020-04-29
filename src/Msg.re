@@ -8,6 +8,7 @@ type t =
   | MessageService(MessageService.msg)
   | StatusBar(StatusBar.msg)
   | Telemetry(Telemetry.msg)
+  | TerminalService(TerminalService.msg)
   | Initialized
   | Disconnected
   | Unhandled
